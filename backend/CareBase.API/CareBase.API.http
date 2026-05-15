@@ -1,0 +1,6 @@
+@CareBase.API_HostAddress = http://localhost:5076
+
+GET {{CareBase.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

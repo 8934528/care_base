@@ -1,0 +1,8 @@
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.csproj.AssemblyReference.cache
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.AssemblyInfoInputs.cache
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.AssemblyInfo.cs
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.csproj.CoreCompileInputs.cache
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.sourcelink.json
