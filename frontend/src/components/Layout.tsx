@@ -13,6 +13,8 @@ export default function Layout() {
 
   return (
     <div className="dashboard-layout">
+      {/* Background watermark logo */}
+      <img src="/carebase.png" alt="" className="auth-bg-watermark" aria-hidden="true" />
       <Sidebar />
       <div className="main-content">
         <header className="topbar">

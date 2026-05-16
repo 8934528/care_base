@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { searchPatients } from "../../services/patientService";
 import { addToQueue } from "../../services/queueService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 interface Patient {
   id: number;
@@ -16,6 +17,7 @@ export default function PatientSearch() {
   const [results, setResults] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -102,13 +104,27 @@ export default function PatientSearch() {
                   <td>{p.firstName} {p.lastName}</td>
                   <td>{p.idNumber}</td>
                   <td>
-                    <button 
-                      className="btn btn-primary btn-sm" 
-                      onClick={() => handleAddToQueue(p)}
-                    >
-                      <i className="fi fi-rr-list-check"></i>
-                      <span>Add to Queue</span>
-                    </button>
+                    <div className="action-buttons">
+                      <button 
+                        className="btn btn-primary btn-sm" 
+                        onClick={() => handleAddToQueue(p)}
+                      >
+                        <i className="fi fi-rr-list-check"></i>
+                        <span>Queue</span>
+                      </button>
+                      {(user?.role === "Admin" || user?.role === "Doctor") && (
+                        <Link to={`/records/${p.id}`} className="btn btn-secondary btn-sm" style={{ backgroundColor: "var(--secondary)", color: "white" }}>
+                          <i className="fi fi-rr-file-medical"></i>
+                          <span>Records</span>
+                        </Link>
+                      )}
+                      {(user?.role === "Admin" || user?.role === "Doctor" || user?.role === "Nurse") && (
+                        <Link to={`/notes/${p.id}`} className="btn btn-ghost btn-sm">
+                          <i className="fi fi-rr-comment-medical"></i>
+                          <span>Notes</span>
+                        </Link>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

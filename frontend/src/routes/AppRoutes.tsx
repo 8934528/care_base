@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
@@ -16,26 +16,39 @@ import Reports from '../pages/reports/Reports';
 import Notifications from '../pages/notifications/Notifications';
 import NotFound from '../pages/notfound/NotFound';
 
-const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
+const ProtectedRoute = ({ children, role, roles }: { children: React.ReactNode, role?: string, roles?: string[] }) => {
   const { user } = useAuth();
   
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (role && user.role !== role && user.role !== 'Admin') {
-    return (
-      <div className="flex-center-col">
-        <h1 className="text-huge text-primary">403</h1>
-        <h2>Access Denied</h2>
-        <p className="mt-4 text-secondary">You do not have permission to view this page.</p>
-        <Link to="/dashboard" className="btn btn-primary mt-8">Back to Dashboard</Link>
-      </div>
-    );
+  if (user.role !== 'Admin') {
+    if (role && user.role !== role) {
+      return (
+        <div className="flex-center-col">
+          <h1 className="text-huge text-primary">403</h1>
+          <h2>Access Denied</h2>
+          <p className="mt-4 text-secondary">You do not have permission to view this page.</p>
+          <Link to="/dashboard" className="btn btn-primary mt-8">Back to Dashboard</Link>
+        </div>
+      );
+    }
+    if (roles && !roles.includes(user.role)) {
+      return (
+        <div className="flex-center-col">
+          <h1 className="text-huge text-primary">403</h1>
+          <h2>Access Denied</h2>
+          <p className="mt-4 text-secondary">You do not have permission to view this page.</p>
+          <Link to="/dashboard" className="btn btn-primary mt-8">Back to Dashboard</Link>
+        </div>
+      );
+    }
   }
 
   return children;
 };
+
 
 export default function AppRoutes() {
   return (
@@ -81,7 +94,7 @@ export default function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="/notes/:patientId" element={
-          <ProtectedRoute role="Nurse">
+          <ProtectedRoute roles={["Doctor", "Nurse"]}>
             <DoctorNurseNotes />
           </ProtectedRoute>
         } />
@@ -98,6 +111,8 @@ export default function AppRoutes() {
       </Route>
 
       <Route path="/404" element={<NotFound />} />
+      <Route path="/records" element={<Navigate to="/patients" replace />} />
+      <Route path="/notes" element={<Navigate to="/patients" replace />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
   );
