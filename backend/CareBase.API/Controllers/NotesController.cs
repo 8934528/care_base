@@ -1,4 +1,4 @@
-using CareBase.Core.Data;
+using CareBase.Infrastructure.Data;
 using CareBase.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

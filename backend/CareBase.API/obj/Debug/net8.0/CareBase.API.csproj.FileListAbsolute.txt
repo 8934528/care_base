@@ -113,3 +113,4 @@ C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\refint\
 C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.pdb
 C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\CareBase.API.genruntimeconfig.cache
 C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\obj\Debug\net8.0\ref\CareBase.API.dll
+C:\Users\Mihlali\Desktop\care_base\backend\CareBase.API\bin\Debug\net8.0\EFCore.NamingConventions.dll

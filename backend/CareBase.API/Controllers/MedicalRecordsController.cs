@@ -1,46 +1,51 @@
-using CareBase.Core.Data;
-using CareBase.Core.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using CareBase.Core.Services;
+using CareBase.Shared.DTOs;
 
 namespace CareBase.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/medical-records")]
+[Authorize(Roles = "Doctor,Nurse,Admin")]
 public class MedicalRecordsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly MedicalRecordService _service;
 
-    public MedicalRecordsController(AppDbContext context)
+    public MedicalRecordsController(MedicalRecordService service)
     {
-        _context = context;
-    }
-
-    [HttpGet("{patientId}")]
-    public async Task<IActionResult> GetPatientRecords(int patientId)
-    {
-        var records = await _context.MedicalRecords
-            .Include(r => r.CreatedBy)
-            .Where(r => r.PatientId == patientId)
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
-        return Ok(records);
+        _service = service;
     }
 
     [HttpPost]
-    [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> AddRecord([FromBody] MedicalRecord record)
+    public async Task<IActionResult> Create(CreateMedicalRecordDto dto)
     {
-        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (int.TryParse(userIdString, out int userId))
+        try
         {
-            record.CreatedById = userId;
+            var result = await _service.CreateRecord(dto);
+            return Ok(result);
         }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 
-        _context.MedicalRecords.Add(record);
-        await _context.SaveChangesAsync();
+    [HttpGet("patient/{patientId}")]
+    public async Task<IActionResult> History(int patientId)
+    {
+        var history = await _service.GetPatientHistory(patientId);
+        return Ok(history);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(int id)
+    {
+        var record = await _service.GetRecord(id);
+
+        if (record == null)
+            return NotFound();
+
         return Ok(record);
     }
 }

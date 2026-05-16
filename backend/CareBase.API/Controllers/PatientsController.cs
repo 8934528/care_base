@@ -1,46 +1,55 @@
-using CareBase.Core.Data;
-using CareBase.Core.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using CareBase.Core.Services;
+using CareBase.Shared.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CareBase.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/patients")]
+[Authorize(Roles = "Admin,Doctor,Nurse,Clerk")]
 public class PatientsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly PatientService _service;
 
-    public PatientsController(AppDbContext context)
+    public PatientsController(PatientService service)
     {
-        _context = context;
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetPatients([FromQuery] string search)
-    {
-        var query = _context.Patients.AsQueryable();
-        
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(p => 
-                p.FirstName.Contains(search) || 
-                p.LastName.Contains(search) || 
-                p.IdNumber.Contains(search) || 
-                p.ReferenceNumber.Contains(search));
-        }
-
-        var patients = await query.ToListAsync();
-        return Ok(patients);
+        _service = service;
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreatePatient([FromBody] Patient patient)
+    public async Task<IActionResult> Register([FromBody] CreatePatientDto dto)
     {
-        _context.Patients.Add(patient);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetPatients), new { id = patient.Id }, patient);
+        try
+        {
+            var patient = await _service.RegisterPatient(dto);
+            return Ok(new
+            {
+                patient.PatientRef,
+                FullName = $"{patient.FirstName} {patient.LastName}"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string keyword)
+    {
+        var results = await _service.SearchPatients(keyword);
+        return Ok(results);
+    }
+
+    [HttpGet("{patientRef}")]
+    public async Task<IActionResult> Get(string patientRef)
+    {
+        var patient = await _service.GetByRef(patientRef);
+
+        if (patient == null)
+            return NotFound();
+
+        return Ok(patient);
     }
 }

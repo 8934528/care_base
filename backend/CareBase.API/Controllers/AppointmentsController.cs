@@ -1,39 +1,54 @@
-using CareBase.Core.Data;
-using CareBase.Core.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using CareBase.Core.Services;
+using CareBase.Shared.DTOs;
 
 namespace CareBase.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/appointments")]
 [Authorize]
 public class AppointmentsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly AppointmentService _service;
 
-    public AppointmentsController(AppDbContext context)
+    public AppointmentsController(AppointmentService service)
     {
-        _context = context;
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAppointments()
-    {
-        var appointments = await _context.Appointments
-            .Include(a => a.Patient)
-            .Include(a => a.Doctor)
-            .OrderBy(a => a.AppointmentDate)
-            .ToListAsync();
-        return Ok(appointments);
+        _service = service;
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateAppointment([FromBody] Appointment appointment)
+    public async Task<IActionResult> Create(CreateAppointmentDto dto)
     {
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
-        return Ok(appointment);
+        try
+        {
+            var result = await _service.CreateAppointment(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("date/{date}")]
+    public async Task<IActionResult> ByDate(DateTime date)
+    {
+        var result = await _service.GetAppointmentsByDate(date);
+        return Ok(result);
+    }
+
+    [HttpGet("doctor/{doctorId}")]
+    public async Task<IActionResult> DoctorAppointments(int doctorId)
+    {
+        var result = await _service.GetDoctorAppointments(doctorId);
+        return Ok(result);
+    }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
+    {
+        await _service.UpdateStatus(id, status);
+        return Ok();
     }
 }

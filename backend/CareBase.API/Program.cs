@@ -2,18 +2,27 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using CareBase.Core.Data;
+using CareBase.Infrastructure.Data;
 using CareBase.Core.Services;
 using CareBase.Shared.Helpers;
+using CareBase.API.Middleware;
+using CareBase.API.Hubs;
+
+DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "../../.env"));
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Configure Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")?
+    .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD"));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString)
+           .UseSnakeCaseNamingConvention());
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -39,13 +48,20 @@ builder.Services.AddAuthorization();
 // Register Services
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PatientService>();
+builder.Services.AddScoped<QueueService>();
+builder.Services.AddScoped<MedicalRecordService>();
+builder.Services.AddScoped<AppointmentService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddHostedService<ReminderBackgroundService>();
 
 // CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://localhost:3000") // frontend ports
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -57,6 +73,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Auto-initialize Database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DbInitializer.Initialize(services);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -65,9 +88,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AuditLoggingMiddleware>();
+
 app.MapControllers();
+app.MapHub<QueueHub>("/queueHub");
 
 app.Run();

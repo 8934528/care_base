@@ -1,51 +1,59 @@
-using CareBase.Core.Data;
-using CareBase.Core.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using CareBase.Core.Services;
+using CareBase.Shared.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CareBase.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/queue")]
 [Authorize]
 public class QueueController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly QueueService _service;
 
-    public QueueController(AppDbContext context)
+    public QueueController(QueueService service)
     {
-        _context = context;
+        _service = service;
+    }
+
+    [HttpPost("add")]
+    public async Task<IActionResult> Add([FromBody] AddToQueueDto dto)
+    {
+        var result = await _service.AddToQueue(dto);
+        return Ok(result);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetQueue()
+    public async Task<IActionResult> GetAll()
     {
-        var queue = await _context.Queue
-            .Include(q => q.Patient)
-            .Where(q => q.Status != "Completed")
-            .OrderBy(q => q.Priority == "Urgent" ? 0 : 1)
-            .ThenBy(q => q.JoinedAt)
-            .ToListAsync();
+        var queue = await _service.GetQueue();
         return Ok(queue);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddToQueue([FromBody] QueueEntry entry)
+    [HttpPost("call-next")]
+    public async Task<IActionResult> CallNext()
     {
-        _context.Queue.Add(entry);
-        await _context.SaveChangesAsync();
-        return Ok(entry);
+        var role = User.Identity?.Name ?? "Staff";
+        var result = await _service.CallNext(role);
+
+        if (result == null)
+            return NotFound("No patients in queue");
+
+        return Ok(result);
     }
 
-    [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
+    [HttpPost("complete/{id}")]
+    public async Task<IActionResult> Complete(int id)
     {
-        var entry = await _context.Queue.FindAsync(id);
-        if (entry == null) return NotFound();
+        await _service.CompleteQueue(id);
+        return Ok();
+    }
 
-        entry.Status = status;
-        await _context.SaveChangesAsync();
-        return Ok(entry);
+    [HttpPost("skip/{id}")]
+    public async Task<IActionResult> Skip(int id)
+    {
+        await _service.SkipQueue(id);
+        return Ok();
     }
 }
