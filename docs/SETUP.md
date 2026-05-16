@@ -4,17 +4,17 @@ After cloning the project, in the root dir, create a `.env` file and perform a c
 
 ```env
 #POSTGRESQL
-DB_PASSWORD=8934528
-JWT_KEY=YourSuperSecretKeyHere1234567890!
+DB_PASSWORD=[YOUR_POSTGRESQL_PASSWORD]
+JWT_KEY=[YOUR_JWT_KEY]
 DB_HOST=localhost
 DB_NAME=carebase
 DB_USER=postgres
 
 #TWILIO MESSAGING
-TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TWILIO_AUTH_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TWILIO_PHONE_NUMBER=+1234567890
-TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+TWILIO_ACCOUNT_SID=[YOUR_TWILIO_ACCOUNT_SID]
+TWILIO_AUTH_TOKEN=[YOUR_TWILIO_AUTH_TOKEN]
+TWILIO_PHONE_NUMBER=[YOUR_TWILIO_PHONE_NUMBER]
+TWILIO_WHATSAPP_NUMBER=[YOUR_TWILIO_WHATSAPP_NUMBER]
 ```
 
 Then run the backend and the frontend using differnt terminal
@@ -37,6 +37,7 @@ npm run dev
 ```
 
 If you don't want to use multiple terminals, you can use the included `Makefile`. Simply run the help command to see all available commands:
+
 ```bash
 make help
 ```
