@@ -114,7 +114,6 @@ export default function PatientProfile() {
       </div>
 
       <div className="row mt-8">
-        {/* Profile Header & Summary */}
         <div className="col-4">
           <div className="glass-panel text-center mb-4">
             <div style={{ width: "100px", height: "100px", borderRadius: "50%", backgroundColor: "var(--primary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", margin: "0 auto 1.5rem" }}>
@@ -161,7 +160,6 @@ export default function PatientProfile() {
           </div>
         </div>
 
-        {/* Detailed Information */}
         <div className="col-8">
           <div className="card min-h-500">
             <div className="section-header">
