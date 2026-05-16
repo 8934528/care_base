@@ -47,7 +47,11 @@ public static class DbInitializer
                 DateOfBirth = new DateTime(1985, 1, 1).ToUniversalTime(),
                 PatientRef = "PAT-0001",
                 Phone = "+27712345678",
-                Email = "john.doe@example.com"
+                Email = "john.doe@example.com",
+                Address = "123 Main St, Cape Town",
+                EmergencyContactName = "Jane Doe",
+                EmergencyContactPhone = "+27712345679",
+                MedicalHistory = "None"
             },
             new Patient { 
                 FirstName = "Jane", 
@@ -57,7 +61,11 @@ public static class DbInitializer
                 DateOfBirth = new DateTime(1992, 5, 5).ToUniversalTime(),
                 PatientRef = "PAT-0002",
                 Phone = "+27723456789",
-                Email = "jane.smith@example.com"
+                Email = "jane.smith@example.com",
+                Address = "456 Oak Ave, Johannesburg",
+                EmergencyContactName = "John Smith",
+                EmergencyContactPhone = "+27723456780",
+                MedicalHistory = "Allergic to Penicillin"
             }
         };
 

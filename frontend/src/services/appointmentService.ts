@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { Appointment } from "../types";
+import type { Appointment } from "../types";
 
 export const createAppointment = async (data: Partial<Appointment>) => {
   const res = await api.post("/appointments", data);

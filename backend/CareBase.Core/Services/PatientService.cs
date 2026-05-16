@@ -59,7 +59,7 @@ public class PatientService
             .ToListAsync();
     }
 
-    public async Task<Patient> GetByRef(string patientRef)
+    public async Task<Patient?> GetByRef(string patientRef)
     {
         return await _context.Patients
             .FirstOrDefaultAsync(p => p.PatientRef == patientRef);

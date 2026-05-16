@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { QueueItem } from "../types";
+import type { QueueItem } from "../types";
 
 export const getQueue = async () => {
   const res = await api.get("/queue");

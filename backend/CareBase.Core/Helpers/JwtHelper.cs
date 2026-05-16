@@ -26,8 +26,8 @@ public class JwtHelper(IConfiguration config)
         };
 
         var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
+            issuer: config["Jwt:Issuer"],
+            audience: config["Jwt:Audience"],
             claims: claims,
             expires: DateTime.Now.AddHours(8),
             signingCredentials: creds

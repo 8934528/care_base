@@ -33,6 +33,7 @@ public class AuditLoggingMiddleware
                         UserId = userId.Value,
                         Action = $"{context.Request.Method} {context.Request.Path}",
                         Module = context.Request.Path.Value?.Split('/').Skip(2).FirstOrDefault() ?? "System",
+                        Details = $"Request to {context.Request.Path}",
                         Timestamp = DateTime.UtcNow,
                         IpAddress = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown"
                     };

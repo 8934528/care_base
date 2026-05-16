@@ -3,6 +3,6 @@ namespace CareBase.Shared.DTOs;
 public class AddToQueueDto
 {
     public int PatientId { get; set; }
-    public string PatientRef { get; set; }
-    public string Priority { get; set; }
+    public required string PatientRef { get; set; }
+    public required string Priority { get; set; }
 }

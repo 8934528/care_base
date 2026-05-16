@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { getAppointmentsByDate, updateAppointmentStatus } from "../../services/appointmentService";
-import { Appointment } from "../../types";
+import type { Appointment } from "../../types";
 
 export default function DailyAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -20,9 +20,12 @@ export default function DailyAppointments() {
 
   useEffect(() => {
     let isMounted = true;
-    if (isMounted) {
-      loadAppointments();
-    }
+    const fetchData = async () => {
+      if (isMounted) {
+        await loadAppointments();
+      }
+    };
+    fetchData();
     return () => { isMounted = false; };
   }, [loadAppointments]);
 

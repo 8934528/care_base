@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPatientHistory } from "../../services/medicalRecordService";
-import { MedicalRecord } from "../../types";
+import type { MedicalRecord } from "../../types";
 
 export default function PatientHistory({ patientId }: { patientId: number }) {
   const [history, setHistory] = useState<MedicalRecord[]>([]);

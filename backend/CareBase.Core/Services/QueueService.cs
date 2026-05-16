@@ -38,7 +38,8 @@ public class QueueService
             PatientId = dto.PatientId,
             PatientRef = dto.PatientRef,
             Priority = dto.Priority ?? "Normal",
-            Status = "Waiting"
+            Status = "Waiting",
+            AssignedTo = "Unassigned"
         };
 
         _context.Queue.Add(item);
@@ -58,7 +59,7 @@ public class QueueService
             .ToListAsync();
     }
 
-    public async Task<QueueItem> CallNext(string roleName)
+    public async Task<QueueItem?> CallNext(string roleName)
     {
         var next = await _context.Queue
             .Where(q => q.Status == "Waiting")
