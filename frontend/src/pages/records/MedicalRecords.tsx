@@ -35,7 +35,8 @@ export default function MedicalRecords() {
       const result = await createMedicalRecord(form);
       alert(`Visit Saved: ${result.visitReference}`);
       navigate(`/patients`);
-    } catch (err: unknown) {
+    } catch (err) {
+      console.error(err);
       alert("Failed to save medical record");
     } finally {
       setLoading(false);

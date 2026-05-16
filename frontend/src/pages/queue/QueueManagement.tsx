@@ -27,7 +27,10 @@ export default function QueueManagement() {
   }, []);
 
   useEffect(() => {
-    loadQueue();
+    const init = async () => {
+      await loadQueue();
+    };
+    init();
 
     const startSignalR = async () => {
       try {
@@ -57,6 +60,7 @@ export default function QueueManagement() {
     try {
       await callNext();
     } catch (err) {
+      console.error(err);
       alert("No patients in queue or error calling next");
     }
   };
@@ -65,6 +69,7 @@ export default function QueueManagement() {
     try {
       await action(id);
     } catch (err) {
+      console.error(err);
       alert("Action failed");
     }
   };

@@ -8,14 +8,9 @@ namespace CareBase.API.Controllers;
 [ApiController]
 [Route("api/patients")]
 [Authorize(Roles = "Admin,Doctor,Nurse,Clerk")]
-public class PatientsController : ControllerBase
+public class PatientsController(PatientService service) : ControllerBase
 {
-    private readonly PatientService _service;
-
-    public PatientsController(PatientService service)
-    {
-        _service = service;
-    }
+    private readonly PatientService _service = service;
 
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] CreatePatientDto dto)

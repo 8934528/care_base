@@ -9,14 +9,9 @@ namespace CareBase.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class NotesController : ControllerBase
+public class NotesController(AppDbContext context) : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public NotesController(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     [HttpGet("{patientId}")]
     public async Task<IActionResult> GetNotes(int patientId)

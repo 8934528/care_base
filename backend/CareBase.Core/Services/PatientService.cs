@@ -5,18 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBase.Core.Services;
 
-public class PatientService
+public class PatientService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbContext _context = context;
 
-    public PatientService(AppDbContext context)
+    private static string GeneratePatientRef()
     {
-        _context = context;
-    }
-
-    private string GeneratePatientRef()
-    {
-        return $"PAT-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}";
+        return $"PAT-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString()[..5].ToUpper()}";
     }
 
     public async Task<Patient> RegisterPatient(CreatePatientDto dto)

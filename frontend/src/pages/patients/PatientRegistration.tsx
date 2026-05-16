@@ -30,7 +30,8 @@ export default function PatientRegistration() {
       const res = await registerPatient(form);
       alert(`Patient Registered: ${res.patientRef}`);
       navigate("/patients");
-    } catch (err: unknown) {
+    } catch (err) {
+      console.error(err);
       alert("Registration failed");
     } finally {
       setLoading(false);

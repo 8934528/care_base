@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBase.Core.Services;
 
-public class DashboardService
+public class DashboardService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
-
-    public DashboardService(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     public async Task<DashboardStatsDto> GetDashboard()
     {

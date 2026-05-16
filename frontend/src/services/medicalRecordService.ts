@@ -1,6 +1,6 @@
 import { api } from "./api";
 
-export const createMedicalRecord = async (data: any) => {
+export const createMedicalRecord = async (data: Record<string, unknown>) => {
   const res = await api.post("/medical-records", data);
   return res.data;
 };

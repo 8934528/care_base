@@ -8,14 +8,9 @@ namespace CareBase.API.Controllers;
 [ApiController]
 [Route("api/appointments")]
 [Authorize]
-public class AppointmentsController : ControllerBase
+public class AppointmentsController(AppointmentService service) : ControllerBase
 {
-    private readonly AppointmentService _service;
-
-    public AppointmentsController(AppointmentService service)
-    {
-        _service = service;
-    }
+    private readonly AppointmentService _service = service;
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateAppointmentDto dto)

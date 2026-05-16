@@ -28,7 +28,10 @@ export default function DoctorNurseNotes() {
   }, [patientId]);
 
   useEffect(() => {
-    fetchNotes();
+    const init = async () => {
+      await fetchNotes();
+    };
+    init();
   }, [fetchNotes]);
 
   const handleAddNote = async (e: React.FormEvent) => {
@@ -37,7 +40,8 @@ export default function DoctorNurseNotes() {
       await api.post("/notes", { content: newNote, patientId: Number(patientId) });
       setNewNote("");
       await fetchNotes();
-    } catch (err: unknown) {
+    } catch (err) {
+      console.error(err);
       alert("Failed to add note");
     }
   };

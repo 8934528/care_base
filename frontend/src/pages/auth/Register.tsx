@@ -43,11 +43,9 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      {/* Background watermark logo */}
       <img src="/carebase.png" alt="" className="auth-bg-watermark" aria-hidden="true" />
 
       <div className="auth-card auth-card-wide animate-fade-in">
-        {/* Card header */}
         <div className="auth-card-header">
           <img src="/carebase.png" alt="CareBase Logo" className="auth-logo" />
           <h1 className="auth-title">Create account</h1>
@@ -62,7 +60,6 @@ export default function Register() {
         )}
 
         <form onSubmit={handleRegister} className="auth-form">
-          {/* Full Name + Email */}
           <div className="auth-two-col">
             <div className="form-group mt-3 mb-3">
               <label className="form-label" htmlFor="reg-fullName">Full Name</label>
@@ -97,7 +94,6 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Password + Confirm Password — two columns */}
           <div className="auth-two-col">
             <div className="form-group mt-3 mb-3">
               <label className="form-label" htmlFor="reg-password">Password</label>
@@ -148,7 +144,6 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Role — full width */}
           <div className="form-group mt-3 mb-3">
             <label className="form-label" htmlFor="reg-role">System Role</label>
             <div className="input-with-icon">

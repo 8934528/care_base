@@ -158,11 +158,16 @@ a:hover {
 }
 
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 250px;
   background-color: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  z-index: 20;
 }
 
 .sidebar-header {
@@ -233,9 +238,14 @@ a:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: 250px;
 }
 
 .topbar {
+  position: fixed;
+  top: 0;
+  left: 250px;
+  right: 0;
   height: 70px;
   background-color: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -243,11 +253,13 @@ a:hover {
   align-items: center;
   justify-content: flex-end;
   padding: 0 2rem;
+  z-index: 10;
 }
 
 .page-container {
   padding: 2rem;
   flex: 1;
+  margin-top: 70px;
   overflow-y: auto;
 }
 

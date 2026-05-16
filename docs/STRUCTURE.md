@@ -20,7 +20,6 @@ care_base/
 frontend/
 │
 ├── public/
-│   └── index.html
 │
 ├── src/
 │
@@ -100,7 +99,7 @@ frontend/
 │   │
 │   ├── App.tsx
 │   ├── main.tsx
-│   └── vite-env.d.ts
+│   └── index.html
 │
 ├── package.json
 └── vite.config.ts

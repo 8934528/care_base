@@ -41,7 +41,8 @@ export default function PatientSearch() {
       });
       alert("Added to queue successfully");
       navigate("/queue");
-    } catch (err: unknown) {
+    } catch (err) {
+      console.error("Failed to add to queue", err);
       alert("Failed to add to queue");
     }
   };
@@ -98,13 +99,21 @@ export default function PatientSearch() {
                 </td>
               </tr>
             ) : (
-              results.map((p: any) => (
+              results.map((p: Patient) => (
                 <tr key={p.id}>
                   <td className="font-semibold text-primary">{p.patientRef}</td>
                   <td>{p.firstName} {p.lastName}</td>
                   <td>{p.idNumber}</td>
                   <td>
                     <div className="action-buttons">
+                      <Link 
+                        to={`/patients/profile/${p.patientRef}`} 
+                        className="btn btn-sm" 
+                        style={{ backgroundColor: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+                      >
+                        <i className="fi fi-rr-id-badge"></i>
+                        <span>Profile</span>
+                      </Link>
                       <button 
                         className="btn btn-primary btn-sm" 
                         onClick={() => handleAddToQueue(p)}

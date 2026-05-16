@@ -8,14 +8,9 @@ namespace CareBase.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ReportsController : ControllerBase
+public class ReportsController(AppDbContext context) : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public ReportsController(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboardStats()

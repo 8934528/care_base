@@ -6,16 +6,10 @@ using CareBase.Core.Data;
 
 namespace CareBase.Core.Services;
 
-public class AuthService
+public class AuthService(AppDbContext context, JwtHelper jwt)
 {
-    private readonly AppDbContext _context;
-    private readonly JwtHelper _jwt;
-
-    public AuthService(AppDbContext context, JwtHelper jwt)
-    {
-        _context = context;
-        _jwt = jwt;
-    }
+    private readonly AppDbContext _context = context;
+    private readonly JwtHelper _jwt = jwt;
 
     public async Task<LoginResponse> Login(LoginRequest request)
     {
@@ -23,7 +17,7 @@ public class AuthService
             .Include(u => u.Role)
             .FirstOrDefaultAsync(x => x.Email == request.Email);
 
-        if (user == null)
+        if (user is null)
             throw new Exception("Invalid credentials");
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -45,7 +39,7 @@ public class AuthService
             throw new Exception("Email already exists");
 
         var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == request.Role);
-        if (role == null)
+        if (role is null)
             throw new Exception("Invalid role");
 
         var user = new User

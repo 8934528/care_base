@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBase.API.Middleware;
 
-public class AuditLoggingMiddleware
+public class AuditLoggingMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public AuditLoggingMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
+    private readonly RequestDelegate _next = next;
 
     public async Task InvokeAsync(HttpContext context, AppDbContext dbContext)
     {

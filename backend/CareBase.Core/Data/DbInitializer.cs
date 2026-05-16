@@ -9,66 +9,58 @@ public static class DbInitializer
     public static void Initialize(AppDbContext context)
     {
 
-        if (context.Roles.Any()) return;
-
-        var roles = new Role[]
+        if (!context.Roles.Any())
         {
-            new Role { RoleName = "Admin", Description = "Full System Access" },
-            new Role { RoleName = "Doctor", Description = "Clinical & Patient Management" },
-            new Role { RoleName = "Nurse", Description = "Patient Care & Vitals" },
-            new Role { RoleName = "Clerk", Description = "Registration & Scheduling" }
-        };
+            var roles = new Role[]
+            {
+                new() { RoleName = "Admin", Description = "Full System Access" },
+                new() { RoleName = "Doctor", Description = "Clinical & Patient Management" },
+                new() { RoleName = "Nurse", Description = "Patient Care & Vitals" },
+                new() { RoleName = "Clerk", Description = "Registration & Scheduling" }
+            };
 
-        context.Roles.AddRange(roles);
-        context.SaveChanges();
+            context.Roles.AddRange(roles);
+            context.SaveChanges();
 
-        var adminRole = context.Roles.First(r => r.RoleName == "Admin");
-        var adminUser = new User
+            var adminRole = context.Roles.First(r => r.RoleName == "Admin");
+            var adminUser = new User
+            {
+                FullName = "System Administrator",
+                Email = "admin@carebase.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+                RoleId = adminRole.Id,
+                IsActive = true
+            };
+
+            context.Users.Add(adminUser);
+            context.SaveChanges();
+        }
+
+        if (!context.Patients.Any())
         {
-            FullName = "System Administrator",
-            Email = "admin@carebase.com",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-            RoleId = adminRole.Id,
-            IsActive = true
-        };
-
-        context.Users.Add(adminUser);
-        context.SaveChanges();
-
-        // Seed some sample patients
-        var patients = new Patient[]
-        {
-            new Patient { 
-                FirstName = "John", 
-                LastName = "Doe", 
-                IdNumber = "8501015001081", 
-                Gender = "Male", 
-                DateOfBirth = new DateTime(1985, 1, 1).ToUniversalTime(),
-                PatientRef = "PAT-0001",
-                Phone = "+27712345678",
-                Email = "john.doe@example.com",
-                Address = "123 Main St, Cape Town",
-                EmergencyContactName = "Jane Doe",
-                EmergencyContactPhone = "+27712345679",
-                MedicalHistory = "None"
-            },
-            new Patient { 
-                FirstName = "Jane", 
-                LastName = "Smith", 
-                IdNumber = "9205055001082", 
-                Gender = "Female", 
-                DateOfBirth = new DateTime(1992, 5, 5).ToUniversalTime(),
-                PatientRef = "PAT-0002",
-                Phone = "+27723456789",
-                Email = "jane.smith@example.com",
-                Address = "456 Oak Ave, Johannesburg",
-                EmergencyContactName = "John Smith",
-                EmergencyContactPhone = "+27723456780",
-                MedicalHistory = "Allergic to Penicillin"
+            try
+            {
+                var sqlFilePath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "database", "seed", "seed_demo_patients.sql");
+                if (File.Exists(sqlFilePath))
+                {
+                    var sql = File.ReadAllText(sqlFilePath);
+                    context.Database.ExecuteSqlRaw(sql);
+                }
+                else
+                {
+                    // Fallback path if ran from project root instead of CareBase.API
+                    var fallbackPath = Path.Combine(Directory.GetCurrentDirectory(), "database", "seed", "seed_demo_patients.sql");
+                    if (File.Exists(fallbackPath))
+                    {
+                        var sql = File.ReadAllText(fallbackPath);
+                        context.Database.ExecuteSqlRaw(sql);
+                    }
+                }
             }
-        };
-
-        context.Patients.AddRange(patients);
-        context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error seeding patients from SQL: {ex.Message}");
+            }
+        }
     }
 }

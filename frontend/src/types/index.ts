@@ -35,4 +35,5 @@ export interface QueueItem {
   patientRef: string;
   status: string;
   priority: string;
+  patientId?: number;
 }

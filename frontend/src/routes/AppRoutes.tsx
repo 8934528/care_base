@@ -7,6 +7,7 @@ import Dashboard from '../pages/dashboard/Dashboard';
 import Layout from '../components/Layout';
 import PatientSearch from '../pages/patients/PatientSearch';
 import PatientRegistration from '../pages/patients/PatientRegistration';
+import PatientProfile from '../pages/patients/PatientProfile';
 import MedicalRecords from '../pages/records/MedicalRecords';
 import DoctorNurseNotes from '../pages/notes/DoctorNurseNotes';
 import AppointmentScheduler from '../pages/appointments/AppointmentScheduler';
@@ -71,6 +72,11 @@ export default function AppRoutes() {
         <Route path="/patients/register" element={
           <ProtectedRoute>
             <PatientRegistration />
+          </ProtectedRoute>
+        } />
+        <Route path="/patients/profile/:patientRef" element={
+          <ProtectedRoute>
+            <PatientProfile />
           </ProtectedRoute>
         } />
         <Route path="/appointments" element={

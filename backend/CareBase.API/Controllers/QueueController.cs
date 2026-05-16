@@ -8,14 +8,9 @@ namespace CareBase.API.Controllers;
 [ApiController]
 [Route("api/queue")]
 [Authorize]
-public class QueueController : ControllerBase
+public class QueueController(QueueService service) : ControllerBase
 {
-    private readonly QueueService _service;
-
-    public QueueController(QueueService service)
-    {
-        _service = service;
-    }
+    private readonly QueueService _service = service;
 
     [HttpPost("add")]
     public async Task<IActionResult> Add([FromBody] AddToQueueDto dto)

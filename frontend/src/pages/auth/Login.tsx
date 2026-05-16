@@ -31,11 +31,9 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      {/* Background watermark logo */}
       <img src="/carebase.png" alt="" className="auth-bg-watermark" aria-hidden="true" />
 
       <div className="auth-card animate-fade-in">
-        {/* Card header */}
         <div className="auth-card-header">
           <img src="/carebase.png" alt="CareBase Logo" className="auth-logo" />
           <h1 className="auth-title">Welcome back</h1>
