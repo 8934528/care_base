@@ -313,3 +313,5 @@ bin/
 obj/
 
 Debug/
+package-lock.json
+test_reg.mjs

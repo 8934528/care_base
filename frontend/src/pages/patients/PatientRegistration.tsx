@@ -26,13 +26,20 @@ export default function PatientRegistration() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const payload: any = { ...form };
+    if (!payload.dateOfBirth) {
+      delete payload.dateOfBirth;
+    }
+
     try {
-      const res = await registerPatient(form);
+      const res = await registerPatient(payload);
       alert(`Patient Registered: ${res.patientRef}`);
       navigate("/patients");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Registration failed");
+      const errorMsg = err.response?.data?.message || err.response?.data?.title || "Registration failed";
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
