@@ -16,7 +16,7 @@ export default function Layout() {
       <Sidebar />
       <div className="main-content">
         <header className="topbar">
-          <button className="btn" onClick={handleLogout} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
+          <button className="btn btn-ghost" onClick={handleLogout}>
             Logout
           </button>
         </header>

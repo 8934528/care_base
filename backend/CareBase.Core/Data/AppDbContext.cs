@@ -7,19 +7,18 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<Patient> Patients { get; set; }
-    public DbSet<Appointment> Appointments { get; set; }
-    public DbSet<MedicalRecord> MedicalRecords { get; set; }
-    public DbSet<Note> Notes { get; set; }
-    public DbSet<QueueItem> Queue { get; set; }
-    public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Role> Roles { get; set; } = null!;
+    public DbSet<Patient> Patients { get; set; } = null!;
+    public DbSet<Appointment> Appointments { get; set; } = null!;
+    public DbSet<MedicalRecord> MedicalRecords { get; set; } = null!;
+    public DbSet<Note> Notes { get; set; } = null!;
+    public DbSet<QueueItem> Queue { get; set; } = null!;
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+    public DbSet<Notification> Notifications { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        // Snake case naming convention is handled in Program.cs with UseSnakeCaseNamingConvention()
     }
 }

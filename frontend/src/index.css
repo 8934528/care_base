@@ -64,8 +64,8 @@ a:hover {
 /* Glassmorphism Surface */
 .glass-panel {
   background: var(--surface-glass);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   padding: 2rem;
@@ -408,6 +408,35 @@ a:hover {
 .border-l-secondary { border-left: 4px solid var(--secondary); }
 .stats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .policy-list-compact { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8; padding-left: 1.2rem; }
+
+.flex-center-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.text-huge {
+  font-size: 6rem;
+}
+
+.error-state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--error);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.05);
+}
 
 .action-buttons {
   display: flex;
@@ -795,4 +824,36 @@ a:hover {
   font-weight: 700;
   margin-top: 0.5rem;
   color: var(--primary);
+}
+
+/* History Classes */
+.history-item {
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--primary);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.prescription-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(var(--secondary-rgb), 0.1);
+  border: 1px solid var(--secondary);
+}
+
+.text-center-padded {
+  text-align: center;
+  padding: 3rem;
 }

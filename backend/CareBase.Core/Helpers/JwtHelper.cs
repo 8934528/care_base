@@ -7,19 +7,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace CareBase.Core.Helpers;
 
-public class JwtHelper
+public class JwtHelper(IConfiguration config)
 {
-    private readonly IConfiguration _config;
-
-    public JwtHelper(IConfiguration config)
-    {
-        _config = config;
-    }
-
     public string GenerateToken(User user)
     {
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key", "JWT Key is missing"))
+            Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is missing in configuration"))
         );
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

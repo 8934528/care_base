@@ -6,21 +6,14 @@ namespace CareBase.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+public class AuthController(AuthService auth) : ControllerBase
 {
-    private readonly AuthService _auth;
-
-    public AuthController(AuthService auth)
-    {
-        _auth = auth;
-    }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         try
         {
-            var result = await _auth.Login(request);
+            var result = await auth.Login(request);
             return Ok(result);
         }
         catch (Exception ex)
@@ -34,7 +27,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var result = await _auth.Register(request);
+            var result = await auth.Register(request);
             return Ok(result);
         }
         catch (Exception ex)

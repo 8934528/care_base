@@ -5,18 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBase.Core.Services;
 
-public class MedicalRecordService
+public class MedicalRecordService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
-
-    public MedicalRecordService(AppDbContext context)
+    private static string GenerateVisitRef()
     {
-        _context = context;
-    }
-
-    private string GenerateVisitRef()
-    {
-        return $"VIS-{DateTime.Now.Year}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}";
+        return $"VIS-{DateTime.Now.Year}-{Guid.NewGuid().ToString()[..5].ToUpper()}";
     }
 
     public async Task<MedicalRecord> CreateRecord(CreateMedicalRecordDto dto)
@@ -49,23 +42,23 @@ public class MedicalRecordService
             FollowUpDate = dto.FollowUpDate
         };
 
-        _context.MedicalRecords.Add(record);
-        await _context.SaveChangesAsync();
+        context.MedicalRecords.Add(record);
+        await context.SaveChangesAsync();
 
         return record;
     }
 
     public async Task<List<MedicalRecord>> GetPatientHistory(int patientId)
     {
-        return await _context.MedicalRecords
+        return await context.MedicalRecords
             .Where(x => x.PatientId == patientId)
             .OrderByDescending(x => x.VisitDate)
             .ToListAsync();
     }
 
-    public async Task<MedicalRecord> GetRecord(int id)
+    public async Task<MedicalRecord?> GetRecord(int id)
     {
-        return await _context.MedicalRecords
+        return await context.MedicalRecords
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 }

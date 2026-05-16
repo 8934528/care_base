@@ -25,9 +25,11 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
 
   if (role && user.role !== role && user.role !== 'Admin') {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--error)' }}>
+      <div className="flex-center-col">
+        <h1 className="text-huge text-primary">403</h1>
         <h2>Access Denied</h2>
-        <p>You do not have permission to view this page.</p>
+        <p className="mt-4 text-secondary">You do not have permission to view this page.</p>
+        <Link to="/dashboard" className="btn btn-primary mt-8">Back to Dashboard</Link>
       </div>
     );
   }

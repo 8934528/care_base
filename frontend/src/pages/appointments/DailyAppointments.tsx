@@ -1,15 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { getAppointmentsByDate, updateAppointmentStatus } from "../../services/appointmentService";
-
-interface Appointment {
-  id: number;
-  appointmentRef: string;
-  patientId: string | number;
-  startTime: string;
-  endTime: string;
-  appointmentType: string;
-  status: string;
-}
+import { Appointment } from "../../types";
 
 export default function DailyAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -39,7 +30,8 @@ export default function DailyAppointments() {
     try {
       await updateAppointmentStatus(id, status);
       await loadAppointments();
-    } catch (err: unknown) {
+    } catch (error: unknown) {
+      console.error("Failed to update status", error);
       alert("Failed to update status");
     }
   };

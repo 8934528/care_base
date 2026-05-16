@@ -1,11 +1,12 @@
 import { api } from "./api";
+import { QueueItem } from "../types";
 
 export const getQueue = async () => {
   const res = await api.get("/queue");
   return res.data;
 };
 
-export const addToQueue = async (data: any) => {
+export const addToQueue = async (data: Partial<QueueItem>) => {
   const res = await api.post("/queue/add", data);
   return res.data;
 };

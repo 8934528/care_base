@@ -7,9 +7,9 @@ namespace CareBase.Core.Services;
 
 public class NotificationService
 {
-    private readonly string _sid;
-    private readonly string _token;
-    private readonly string _phone;
+    private readonly string? _sid;
+    private readonly string? _token;
+    private readonly string? _phone;
     private readonly string _whatsapp;
 
     public NotificationService()
