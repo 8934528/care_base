@@ -10,10 +10,10 @@ namespace CareBase.Core.Services;
 public class QueueService
 {
     private readonly AppDbContext _context;
-    private readonly IHubContext<dynamic> _hubContext; // We still use dynamic or a specific way to call the hub from Core
+    private readonly IHubContext<QueueHub, IQueueHub> _hubContext;
 
     
-    public QueueService(AppDbContext context, IHubContext<dynamic> hubContext)
+    public QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub> hubContext)
     {
         _context = context;
         _hubContext = hubContext;
@@ -27,7 +27,7 @@ public class QueueService
     private async Task BroadcastQueueUpdate()
     {
         var queue = await GetQueue();
-        await _hubContext.Clients.All.SendAsync("ReceiveQueueUpdate", queue);
+        await _hubContext.Clients.All.ReceiveQueueUpdate(queue);
     }
 
     public async Task<QueueItem> AddToQueue(AddToQueueDto dto)

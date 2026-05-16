@@ -262,7 +262,7 @@ a:hover {
 
 .login-container {
   width: 100%;
-  maxWidth: 400px;
+  max-width: 400px;
   padding: 2.5rem;
 }
 
@@ -378,9 +378,36 @@ a:hover {
 .overflow-x { overflow-x: auto; }
 .text-center { text-align: center; }
 .font-bold { font-weight: 700; }
-.font-semibold { font-semibold: 600; }
+.font-semibold { font-weight: 600; }
 .text-primary { color: var(--primary); }
 .p-4 { padding: 1rem; }
+.p-12 { padding: 3rem; }
+.m-0 { margin: 0; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-8 { margin-top: 2rem; }
+.mt-12 { margin-top: 3rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-8 { margin-bottom: 2rem; }
+.h-200 { height: 200px; }
+.h-full { height: 100%; }
+.text-secondary { color: var(--text-secondary); }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+.text-6xl { font-size: 4rem; }
+.font-bold { font-weight: 700; }
+.tracking-widest { letter-spacing: 0.1em; }
+.op-20 { opacity: 0.2; }
+.flex-between { display: flex; justify-content: space-between; }
+.align-center { align-items: center; }
+.bg-primary { background-color: var(--primary); color: white; }
+.bg-secondary { background-color: var(--secondary); color: white; }
+.bg-surface-faint { background-color: rgba(var(--secondary-rgb), 0.05); }
+.border-l-primary { border-left: 4px solid var(--primary); }
+.border-l-secondary { border-left: 4px solid var(--secondary); }
+.stats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.policy-list-compact { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8; padding-left: 1.2rem; }
 
 .action-buttons {
   display: flex;
@@ -580,6 +607,67 @@ a:hover {
 
 .align-center { align-items: center; }
 .mb-8 { margin-bottom: 2rem !important; }
+.mt-6 { margin-top: 1.5rem !important; }
+.min-h-500 { min-height: 500px; }
+
+/* Notes Specifics */
+.notes-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.note-item {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.note-item:last-child {
+  border-bottom: none;
+}
+
+.note-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.note-author {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.note-author i {
+  color: var(--primary);
+  font-size: 14px;
+}
+
+.note-role {
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.note-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.note-date i {
+  font-size: 12px;
+}
+
+.note-body {
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
 
 /* Dashboard Specifics */
 .operational-visibility {

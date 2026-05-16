@@ -25,29 +25,33 @@ export default function Register() {
       const res = await api.post("/auth/register", formData);
       login(res.data);
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--background)' }}>
-      <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '450px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--primary)' }}>CAREBASE</h2>
-        <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Create a new account</p>
+    <div className="login-page">
+      <div className="glass-panel animate-fade-in login-container">
+        <div className="login-header">
+           <img src="/carebase.png" alt="CareBase Logo" className="login-logo" />
+           <p className="login-subtitle">Create a new clinical account</p>
+        </div>
         
         {error && (
-          <div style={{ padding: '1rem', background: 'var(--error)', color: 'white', marginBottom: '1rem', textAlign: 'center' }}>
+          <div className="error-box">
             {error}
           </div>
         )}
 
         <form onSubmit={handleRegister}>
           <div className="form-group">
-            <label className="form-label">Full Name</label>
+            <label className="form-label" htmlFor="fullName">Full Name</label>
             <input
+              id="fullName"
               type="text"
               className="form-input"
               placeholder="John Doe"
@@ -58,8 +62,9 @@ export default function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label" htmlFor="email">Email</label>
             <input
+              id="email"
               type="email"
               className="form-input"
               placeholder="email@carebase.com"
@@ -70,8 +75,9 @@ export default function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label" htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               className="form-input"
               placeholder="Create a password"
@@ -82,12 +88,14 @@ export default function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Role</label>
+            <label className="form-label" htmlFor="role">Role</label>
             <select
+              id="role"
               className="form-input"
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               required
+              aria-label="Select system role"
             >
               <option value="Admin">Admin</option>
               <option value="Doctor">Doctor</option>
@@ -101,9 +109,10 @@ export default function Register() {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem' }}>
-          Already have an account? <Link to="/login">Login here</Link>
-        </p>
+        <div className="login-footer">
+          <span>Already have an account? </span>
+          <Link to="/login">Login here</Link>
+        </div>
       </div>
     </div>
   );

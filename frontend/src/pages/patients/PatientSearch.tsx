@@ -2,11 +2,18 @@ import { useState } from "react";
 import { searchPatients } from "../../services/patientService";
 import { addToQueue } from "../../services/queueService";
 import { useNavigate } from "react-router-dom";
-import { Search, UserPlus, ListOrdered, User } from "lucide-react";
+
+interface Patient {
+  id: number;
+  patientRef: string;
+  firstName: string;
+  lastName: string;
+  idNumber: string;
+}
 
 export default function PatientSearch() {
   const [keyword, setKeyword] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -16,14 +23,14 @@ export default function PatientSearch() {
     try {
       const data = await searchPatients(keyword);
       setResults(data);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Search failed", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddToQueue = async (patient: any) => {
+  const handleAddToQueue = async (patient: Patient) => {
     try {
       await addToQueue({
         patientId: patient.id,
@@ -32,7 +39,7 @@ export default function PatientSearch() {
       });
       alert("Added to queue successfully");
       navigate("/queue");
-    } catch (err) {
+    } catch (err: unknown) {
       alert("Failed to add to queue");
     }
   };

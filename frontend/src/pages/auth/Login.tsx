@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { useNavigate, Link } from "react-router-dom";
-import { LogIn, Mail, Lock, ShieldAlert } from "lucide-react";
 
 export default function Login() {
   const { login } = useAuth();
@@ -22,8 +21,9 @@ export default function Login() {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -39,17 +39,18 @@ export default function Login() {
         
         {error && (
           <div className="error-box">
-            <ShieldAlert size={18} strokeWidth={2} />
+            <i className="fi fi-rr-shield-exclamation"></i>
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label" htmlFor="email">Email Address</label>
             <div className="input-with-icon">
-              <Mail size={18} strokeWidth={1.5} className="input-icon" />
+              <i className="fi fi-rr-envelope input-icon"></i>
               <input
+                id="email"
                 type="email"
                 className="form-input has-icon"
                 placeholder="doctor@carebase.com"
@@ -61,10 +62,11 @@ export default function Login() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label" htmlFor="password">Password</label>
             <div className="input-with-icon">
-              <Lock size={18} strokeWidth={1.5} className="input-icon" />
+              <i className="fi fi-rr-lock input-icon"></i>
               <input
+                id="password"
                 type="password"
                 className="form-input has-icon"
                 placeholder="••••••••"
@@ -76,7 +78,7 @@ export default function Login() {
           </div>
 
           <button type="submit" className="btn btn-primary btn-block login-btn" disabled={loading}>
-            <LogIn size={18} strokeWidth={2} />
+            <i className="fi fi-rr-sign-in-alt"></i>
             <span>{loading ? "Authenticating..." : "Sign In"}</span>
           </button>
         </form>

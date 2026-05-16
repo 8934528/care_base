@@ -1,8 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { getAppointmentsByDate, updateAppointmentStatus } from "../../services/appointmentService";
 
+interface Appointment {
+  id: number;
+  appointmentRef: string;
+  patientId: string | number;
+  startTime: string;
+  endTime: string;
+  appointmentType: string;
+  status: string;
+}
+
 export default function DailyAppointments() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadAppointments = useCallback(async () => {
@@ -10,7 +20,7 @@ export default function DailyAppointments() {
       const today = new Date().toISOString().split("T")[0];
       const data = await getAppointmentsByDate(today);
       setAppointments(data);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to load appointments", err);
     } finally {
       setLoading(false);
@@ -18,14 +28,18 @@ export default function DailyAppointments() {
   }, []);
 
   useEffect(() => {
-    loadAppointments();
+    let isMounted = true;
+    if (isMounted) {
+      loadAppointments();
+    }
+    return () => { isMounted = false; };
   }, [loadAppointments]);
 
   const handleStatusUpdate = async (id: number, status: string) => {
     try {
       await updateAppointmentStatus(id, status);
-      loadAppointments();
-    } catch (err) {
+      await loadAppointments();
+    } catch (err: unknown) {
       alert("Failed to update status");
     }
   };

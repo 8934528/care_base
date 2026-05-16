@@ -1,5 +1,5 @@
 using CareBase.Core.Entities;
-using CareBase.Infrastructure.Data;
+using CareBase.Core.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareBase.Infrastructure.Repositories;

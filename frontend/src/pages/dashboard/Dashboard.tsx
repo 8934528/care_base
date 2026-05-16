@@ -19,17 +19,23 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const loadDashboard = async () => {
       try {
         const result = await getDashboard();
-        setData(result);
-      } catch (err) {
+        if (isMounted) {
+          setData(result);
+        }
+      } catch (err: unknown) {
         console.error("Failed to fetch dashboard", err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     loadDashboard();
+    return () => { isMounted = false; };
   }, []);
 
   if (loading || !data) {

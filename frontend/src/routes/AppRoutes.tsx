@@ -1,3 +1,4 @@
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Login from '../pages/auth/Login';
@@ -15,7 +16,7 @@ import Reports from '../pages/reports/Reports';
 import Notifications from '../pages/notifications/Notifications';
 import NotFound from '../pages/notfound/NotFound';
 
-const ProtectedRoute = ({ children, role }: { children: JSX.Element, role?: string }) => {
+const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
   const { user } = useAuth();
   
   if (!user) {

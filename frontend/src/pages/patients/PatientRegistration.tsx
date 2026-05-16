@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { registerPatient } from "../../services/patientService";
 import { useNavigate } from "react-router-dom";
-import { User, Phone, MapPin, AlertCircle, Save } from "lucide-react";
 
 export default function PatientRegistration() {
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ export default function PatientRegistration() {
   });
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -31,7 +30,7 @@ export default function PatientRegistration() {
       const res = await registerPatient(form);
       alert(`Patient Registered: ${res.patientRef}`);
       navigate("/patients");
-    } catch (err) {
+    } catch (err: unknown) {
       alert("Registration failed");
     } finally {
       setLoading(false);
@@ -53,24 +52,24 @@ export default function PatientRegistration() {
                 <h3 className="section-title">Personal Information</h3>
               </div>
               <div className="form-group">
-                <label className="form-label">First Name</label>
-                <input name="firstName" placeholder="First Name" className="form-input" onChange={handleChange} required />
+                <label className="form-label" htmlFor="firstName">First Name</label>
+                <input id="firstName" name="firstName" placeholder="First Name" className="form-input" onChange={handleChange} required />
               </div>
               <div className="form-group">
-                <label className="form-label">Last Name</label>
-                <input name="lastName" placeholder="Last Name" className="form-input" onChange={handleChange} required />
+                <label className="form-label" htmlFor="lastName">Last Name</label>
+                <input id="lastName" name="lastName" placeholder="Last Name" className="form-input" onChange={handleChange} required />
               </div>
               <div className="row">
                 <div className="col-6 no-padding-left">
                   <div className="form-group">
-                    <label className="form-label">ID Number</label>
-                    <input name="idNumber" placeholder="ID Number" className="form-input" onChange={handleChange} required />
+                    <label className="form-label" htmlFor="idNumber">ID Number</label>
+                    <input id="idNumber" name="idNumber" placeholder="ID Number" className="form-input" onChange={handleChange} required />
                   </div>
                 </div>
                 <div className="col-6 no-padding-right">
                   <div className="form-group">
-                    <label className="form-label">Gender</label>
-                    <select name="gender" className="form-input" onChange={handleChange}>
+                    <label className="form-label" htmlFor="gender">Gender</label>
+                    <select id="gender" name="gender" className="form-input" onChange={handleChange} aria-label="Select gender">
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
@@ -79,8 +78,8 @@ export default function PatientRegistration() {
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Date of Birth</label>
-                <input name="dateOfBirth" type="date" className="form-input" onChange={handleChange} />
+                <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
+                <input id="dateOfBirth" name="dateOfBirth" type="date" className="form-input" onChange={handleChange} aria-label="Date of birth" />
               </div>
             </div>
 
@@ -90,31 +89,31 @@ export default function PatientRegistration() {
                 <h3 className="section-title">Contact & Emergency</h3>
               </div>
               <div className="form-group">
-                <label className="form-label">Phone</label>
-                <input name="phone" placeholder="Phone" className="form-input" onChange={handleChange} required />
+                <label className="form-label" htmlFor="phone">Phone</label>
+                <input id="phone" name="phone" placeholder="Phone" className="form-input" onChange={handleChange} required />
               </div>
               <div className="form-group">
-                <label className="form-label">Email</label>
-                <input name="email" placeholder="Email" className="form-input" onChange={handleChange} />
+                <label className="form-label" htmlFor="email">Email</label>
+                <input id="email" name="email" placeholder="Email" className="form-input" onChange={handleChange} />
               </div>
               <div className="form-group">
-                <label className="form-label">Address</label>
+                <label className="form-label" htmlFor="address">Address</label>
                 <div className="input-with-icon">
                   <i className="fi fi-rr-marker input-icon-right"></i>
-                  <textarea name="address" placeholder="Physical Address" className="form-input" rows={2} onChange={handleChange} />
+                  <textarea id="address" name="address" placeholder="Physical Address" className="form-input" rows={2} onChange={handleChange} />
                 </div>
               </div>
               <div className="row">
                 <div className="col-6 no-padding-left">
                   <div className="form-group">
-                    <label className="form-label">Emergency Name</label>
-                    <input name="emergencyContactName" placeholder="Name" className="form-input" onChange={handleChange} />
+                    <label className="form-label" htmlFor="emergencyContactName">Emergency Name</label>
+                    <input id="emergencyContactName" name="emergencyContactName" placeholder="Name" className="form-input" onChange={handleChange} />
                   </div>
                 </div>
                 <div className="col-6 no-padding-right">
                   <div className="form-group">
-                    <label className="form-label">Emergency Phone</label>
-                    <input name="emergencyContactPhone" placeholder="Phone" className="form-input" onChange={handleChange} />
+                    <label className="form-label" htmlFor="emergencyContactPhone">Emergency Phone</label>
+                    <input id="emergencyContactPhone" name="emergencyContactPhone" placeholder="Phone" className="form-input" onChange={handleChange} />
                   </div>
                 </div>
               </div>
@@ -124,9 +123,10 @@ export default function PatientRegistration() {
           <div className="form-group mt-4">
             <div className="section-header-compact">
               <i className="fi fi-rr-interrogation section-icon-warning"></i>
-              <label className="form-label mb-0">Medical History (Allergies, Chronic Conditions, etc.)</label>
+              <label className="form-label mb-0" htmlFor="medicalHistory">Medical History (Allergies, Chronic Conditions, etc.)</label>
             </div>
             <textarea
+              id="medicalHistory"
               name="medicalHistory"
               placeholder="Enter medical history..."
               className="form-input"

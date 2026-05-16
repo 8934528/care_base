@@ -1,4 +1,4 @@
-﻿namespace CareBase.Infrastructure;
+namespace CareBase.Infrastructure;
 
 public class Class1
 {

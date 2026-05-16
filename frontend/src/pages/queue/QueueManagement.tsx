@@ -1,22 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getQueue, callNext, completeQueue, skipQueue } from "../../services/queueService";
 import { queueConnection } from "../../services/signalrService";
-import { Activity, Play, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+
+interface QueueItem {
+  id: number;
+  queueNumber: string;
+  patientRef: string;
+  priority: string;
+  status: string;
+  assignedTo?: string;
+}
 
 export default function QueueManagement() {
-  const [queue, setQueue] = useState<any[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadQueue = async () => {
+  const loadQueue = useCallback(async () => {
     try {
       const data = await getQueue();
       setQueue(data);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to load queue", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadQueue();
@@ -28,10 +36,10 @@ export default function QueueManagement() {
           console.log("SignalR Connected");
         }
 
-        queueConnection.on("ReceiveQueueUpdate", (updatedQueue: any[]) => {
+        queueConnection.on("ReceiveQueueUpdate", (updatedQueue: QueueItem[]) => {
           setQueue(updatedQueue);
         });
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("SignalR Connection Error: ", err);
       }
     };
@@ -43,7 +51,7 @@ export default function QueueManagement() {
         queueConnection.off("ReceiveQueueUpdate");
       }
     };
-  }, []);
+  }, [loadQueue]);
 
   const handleCallNext = async () => {
     try {

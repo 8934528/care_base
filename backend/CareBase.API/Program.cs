@@ -6,7 +6,7 @@ using CareBase.Core.Data;
 using CareBase.Core.Services;
 using CareBase.Core.Helpers;
 using CareBase.API.Middleware;
-using CareBase.API.Hubs;
+using CareBase.Core.Hubs;
 
 DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "../../.env"));
 
@@ -77,7 +77,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await DbInitializer.Initialize(services);
+    var context = services.GetRequiredService<AppDbContext>();
+    DbInitializer.Initialize(context);
 }
 
 // Configure the HTTP request pipeline.

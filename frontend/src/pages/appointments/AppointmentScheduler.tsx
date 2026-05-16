@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createAppointment } from "../../services/appointmentService";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Clock, FileText, AlertTriangle, ShieldCheck, Check } from "lucide-react";
 
 export default function AppointmentScheduler() {
   const navigate = useNavigate();
@@ -18,7 +17,7 @@ export default function AppointmentScheduler() {
   });
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -29,8 +28,9 @@ export default function AppointmentScheduler() {
       const result = await createAppointment(form);
       alert(`Appointment Created: ${result.appointmentRef}`);
       navigate("/appointments/daily");
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Appointment creation failed. Check for conflicts.");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message || "Appointment creation failed. Check for conflicts.");
     } finally {
       setLoading(false);
     }
