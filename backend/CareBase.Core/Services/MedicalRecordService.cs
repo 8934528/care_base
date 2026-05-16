@@ -1,6 +1,6 @@
 using CareBase.Core.Entities;
 using CareBase.Shared.DTOs;
-using CareBase.Infrastructure.Data;
+using CareBase.Core.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareBase.Core.Services;

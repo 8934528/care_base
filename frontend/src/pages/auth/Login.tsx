@@ -30,38 +30,28 @@ export default function Login() {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--background)' }}>
-      <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h1 style={{ color: 'var(--primary)', letterSpacing: '2px', fontWeight: '900', margin: 0 }}>CAREBASE</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.5rem' }}>Clinical Information System</p>
+    <div className="login-page">
+      <div className="glass-panel animate-fade-in login-container">
+        <div className="login-header">
+          <img src="/carebase.png" alt="CareBase Logo" className="login-logo" />
+          <p className="login-subtitle">Clinical Information System</p>
         </div>
         
         {error && (
-          <div style={{ 
-            padding: '1rem', 
-            background: 'rgba(var(--error-rgb), 0.1)', 
-            color: 'var(--error)', 
-            marginBottom: '1.5rem', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.75rem',
-            borderLeft: '4px solid var(--error)'
-          }}>
+          <div className="error-box">
             <ShieldAlert size={18} strokeWidth={2} />
-            <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{error}</span>
+            <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <label className="form-label">Email Address</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={18} strokeWidth={1.5} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--border)' }} />
+            <div className="input-with-icon">
+              <Mail size={18} strokeWidth={1.5} className="input-icon" />
               <input
                 type="email"
-                className="form-input"
-                style={{ paddingLeft: '3rem' }}
+                className="form-input has-icon"
                 placeholder="doctor@carebase.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -72,12 +62,11 @@ export default function Login() {
 
           <div className="form-group">
             <label className="form-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} strokeWidth={1.5} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--border)' }} />
+            <div className="input-with-icon">
+              <Lock size={18} strokeWidth={1.5} className="input-icon" />
               <input
                 type="password"
-                className="form-input"
-                style={{ paddingLeft: '3rem' }}
+                className="form-input has-icon"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -86,15 +75,15 @@ export default function Login() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }} disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-block login-btn" disabled={loading}>
             <LogIn size={18} strokeWidth={2} />
-            {loading ? "Authenticating..." : "Sign In"}
+            <span>{loading ? "Authenticating..." : "Sign In"}</span>
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.875rem' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Don't have an account? </span>
-          <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>Register here</Link>
+        <div className="login-footer">
+          <span>Don't have an account? </span>
+          <Link to="/register">Register here</Link>
         </div>
       </div>
     </div>

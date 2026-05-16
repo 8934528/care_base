@@ -2999,7 +2999,13 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "BCrypt.Net-Next": "4.2.0",
-          "CareBase.Shared": "1.0.0"
+          "CareBase.Shared": "1.0.0",
+          "Microsoft.AspNetCore.SignalR.Core": "1.1.0",
+          "Microsoft.EntityFrameworkCore": "8.0.0",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Hosting.Abstractions": "8.0.0",
+          "System.IdentityModel.Tokens.Jwt": "8.18.0",
+          "Twilio": "7.14.9"
         },
         "compile": {
           "bin/placeholder/CareBase.Core.dll": {}
@@ -3013,7 +3019,9 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "CareBase.Core": "1.0.0",
-          "CareBase.Shared": "1.0.0"
+          "CareBase.Shared": "1.0.0",
+          "Microsoft.EntityFrameworkCore": "8.0.0",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.0"
         },
         "compile": {
           "bin/placeholder/CareBase.Infrastructure.dll": {}
@@ -8935,6 +8943,7 @@
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.0",
       "Microsoft.AspNetCore.OpenApi >= 8.0.26",
       "Microsoft.AspNetCore.SignalR >= 1.2.10",
+      "Microsoft.EntityFrameworkCore >= 8.0.0",
       "Microsoft.EntityFrameworkCore.Design >= 8.0.0",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.0",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 8.0.0",
@@ -9026,6 +9035,10 @@
           "Microsoft.AspNetCore.SignalR": {
             "target": "Package",
             "version": "[1.2.10, )"
+          },
+          "Microsoft.EntityFrameworkCore": {
+            "target": "Package",
+            "version": "[8.0.0, )"
           },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",

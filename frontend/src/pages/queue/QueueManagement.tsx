@@ -63,97 +63,83 @@ export default function QueueManagement() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="page-header">
         <div>
-          <h1>Clinic Queue Management</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <Activity size={16} color="var(--secondary)" strokeWidth={2} />
-            <p style={{ color: 'var(--secondary)', fontSize: '0.875rem', fontWeight: '600' }}>
+          <h1><i className="fi fi-rr-list-check"></i> Clinic Queue Management</h1>
+          <div className="live-status">
+            <i className="fi fi-rr-pulse live-pulse"></i>
+            <p className="live-text">
               Live Real-time Sync Enabled
             </p>
           </div>
         </div>
-        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={handleCallNext}>
-          <Play size={18} strokeWidth={1.5} />
-          Call Next Patient
+        <button className="btn btn-primary" onClick={handleCallNext}>
+          <i className="fi fi-rr-play"></i>
+          <span>Call Next Patient</span>
         </button>
       </div>
 
-      <div className="glass-panel" style={{ padding: 0 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div className="glass-panel no-padding overflow-x">
+        <table className="data-table">
           <thead>
-            <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--border)' }}>
-              <th style={{ padding: '1rem' }}>Queue #</th>
-              <th style={{ padding: '1rem' }}>Patient Ref</th>
-              <th style={{ padding: '1rem' }}>Priority</th>
-              <th style={{ padding: '1rem' }}>Status</th>
-              <th style={{ padding: '1rem' }}>Assigned To</th>
-              <th style={{ padding: '1rem' }}>Actions</th>
+            <tr>
+              <th>Queue #</th>
+              <th>Patient Ref</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Assigned To</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading && queue.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '3rem', textAlign: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                    <RefreshCw size={32} className="animate-spin" color="var(--primary)" strokeWidth={1.5} />
-                    Loading live queue...
+                <td colSpan={6} className="text-center p-12">
+                  <div className="loading-state">
+                    <i className="fi fi-rr-refresh animate-spin loading-icon"></i>
+                    <span>Loading live queue...</span>
                   </div>
                 </td>
               </tr>
             ) : queue.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <td colSpan={6} className="text-center p-12 text-secondary">
                   Queue is empty
                 </td>
               </tr>
             ) : (
               queue.map((q) => (
-                <tr key={q.id} style={{ borderBottom: '1px solid var(--border)', background: q.status === 'InProgress' ? 'rgba(var(--secondary-rgb), 0.05)' : 'transparent' }}>
-                  <td style={{ padding: '1rem', fontWeight: '700' }}>{q.queueNumber}</td>
-                  <td style={{ padding: '1rem' }}>{q.patientRef}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ 
-                      padding: '0.25rem 0.5rem', 
-                      background: q.priority === 'Emergency' ? 'var(--error)' : q.priority === 'Priority' ? 'var(--warning)' : 'var(--border)',
-                      color: q.priority === 'Normal' ? 'var(--text-primary)' : 'white',
-                      fontSize: '0.75rem',
-                      fontWeight: '700'
-                    }}>
+                <tr key={q.id} className={q.status === 'InProgress' ? 'row-in-progress' : ''}>
+                  <td className="font-bold">{q.queueNumber}</td>
+                  <td>{q.patientRef}</td>
+                  <td>
+                    <span className={`status-badge priority-${q.priority?.toLowerCase()}`}>
                       {q.priority}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ 
-                      color: q.status === 'InProgress' ? 'var(--secondary)' : 'inherit',
-                      fontWeight: q.status === 'InProgress' ? '700' : '400',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      {q.status === 'InProgress' && <Activity size={14} className="animate-pulse" />}
+                  <td>
+                    <span className={`queue-status status-${q.status?.toLowerCase()}`}>
+                      {q.status === 'InProgress' && <i className="fi fi-rr-pulse animate-pulse mr-2"></i>}
                       {q.status}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{q.assignedTo || '-'}</td>
-                  <td style={{ padding: '1rem' }}>
+                  <td className="text-secondary">{q.assignedTo || '-'}</td>
+                  <td>
                     {q.status !== 'Completed' && q.status !== 'Skipped' && (
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div className="action-buttons">
                         <button
-                          className="btn btn-primary"
-                          style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem', background: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                          className="btn btn-success btn-sm"
                           onClick={() => handleAction(completeQueue, q.id)}
                         >
-                          <CheckCircle2 size={14} strokeWidth={2} />
-                          Complete
+                          <i className="fi fi-rr-check"></i>
+                          <span>Complete</span>
                         </button>
                         <button
-                          className="btn btn-primary"
-                          style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem', background: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                          className="btn btn-warning btn-sm"
                           onClick={() => handleAction(skipQueue, q.id)}
                         >
-                          <XCircle size={14} strokeWidth={2} />
-                          Skip
+                          <i className="fi fi-rr-redo"></i>
+                          <span>Skip</span>
                         </button>
                       </div>
                     )}

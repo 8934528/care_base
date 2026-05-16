@@ -1,4 +1,4 @@
-using CareBase.Infrastructure.Data;
+using CareBase.Core.Data;
 using CareBase.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
 

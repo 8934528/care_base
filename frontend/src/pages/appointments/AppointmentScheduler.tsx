@@ -38,60 +38,62 @@ export default function AppointmentScheduler() {
 
   return (
     <div className="animate-fade-in">
-      <h1 style={{ marginBottom: '2rem' }}>Appointment Scheduler</h1>
+      <div className="page-header">
+        <h1><i className="fi fi-rr-calendar-clock"></i> Appointment Scheduler</h1>
+      </div>
 
       <div className="row">
         <div className="col-7">
           <div className="glass-panel">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <Calendar size={20} strokeWidth={1.5} color="var(--primary)" />
-              <h3 style={{ margin: 0, color: 'var(--primary)' }}>Booking Details</h3>
+            <div className="section-header">
+              <i className="fi fi-rr-calendar section-icon"></i>
+              <h3 className="section-title">Booking Details</h3>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="row">
-                <div className="col-6" style={{ paddingLeft: 0 }}>
+                <div className="col-6 no-padding-left">
                   <div className="form-group">
-                    <label className="form-label">Patient ID</label>
-                    <input className="form-input" name="patientId" placeholder="Patient ID" onChange={handleChange} required />
+                    <label className="form-label" htmlFor="patientId">Patient ID</label>
+                    <input id="patientId" className="form-input" name="patientId" placeholder="Patient ID" onChange={handleChange} required />
                   </div>
                 </div>
-                <div className="col-6" style={{ paddingRight: 0 }}>
+                <div className="col-6 no-padding-right">
                   <div className="form-group">
-                    <label className="form-label">Doctor ID</label>
-                    <input className="form-input" name="doctorId" placeholder="Doctor ID" onChange={handleChange} required />
+                    <label className="form-label" htmlFor="doctorId">Doctor ID</label>
+                    <input id="doctorId" className="form-input" name="doctorId" placeholder="Doctor ID" onChange={handleChange} required />
                   </div>
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Appointment Date</label>
-                <input type="date" className="form-input" name="appointmentDate" onChange={handleChange} required />
+                <label className="form-label" htmlFor="appointmentDate">Appointment Date</label>
+                <input id="appointmentDate" type="date" className="form-input" name="appointmentDate" onChange={handleChange} required />
               </div>
 
               <div className="row">
-                <div className="col-6" style={{ paddingLeft: 0 }}>
+                <div className="col-6 no-padding-left">
                   <div className="form-group">
-                    <label className="form-label">Start Time</label>
-                    <div style={{ position: 'relative' }}>
-                      <Clock size={16} strokeWidth={1.5} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--border)' }} />
-                      <input type="time" className="form-input" name="startTime" onChange={handleChange} required />
+                    <label className="form-label" htmlFor="startTime">Start Time</label>
+                    <div className="input-with-icon">
+                      <i className="fi fi-rr-clock-three input-icon-right"></i>
+                      <input id="startTime" type="time" className="form-input" name="startTime" onChange={handleChange} required />
                     </div>
                   </div>
                 </div>
-                <div className="col-6" style={{ paddingRight: 0 }}>
+                <div className="col-6 no-padding-right">
                   <div className="form-group">
-                    <label className="form-label">End Time</label>
-                    <div style={{ position: 'relative' }}>
-                      <Clock size={16} strokeWidth={1.5} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--border)' }} />
-                      <input type="time" className="form-input" name="endTime" onChange={handleChange} required />
+                    <label className="form-label" htmlFor="endTime">End Time</label>
+                    <div className="input-with-icon">
+                      <i className="fi fi-rr-clock-three input-icon-right"></i>
+                      <input id="endTime" type="time" className="form-input" name="endTime" onChange={handleChange} required />
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Appointment Type</label>
-                <select className="form-input" name="appointmentType" onChange={handleChange}>
+                <label className="form-label" htmlFor="appointmentType">Appointment Type</label>
+                <select id="appointmentType" className="form-input" name="appointmentType" onChange={handleChange} aria-label="Select appointment type">
                   <option value="Routine Checkup">Routine Checkup</option>
                   <option value="Follow-up">Follow-up</option>
                   <option value="Emergency">Emergency</option>
@@ -100,14 +102,14 @@ export default function AppointmentScheduler() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Reason for Visit</label>
-                <textarea className="form-input" name="reason" placeholder="Brief reason for the appointment..." rows={2} onChange={handleChange} />
+                <label className="form-label" htmlFor="reason">Reason for Visit</label>
+                <textarea id="reason" className="form-input" name="reason" placeholder="Brief reason for the appointment..." rows={2} onChange={handleChange} />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={loading}>
-                  <Check size={18} strokeWidth={2} />
-                  {loading ? "Checking Conflicts..." : "Confirm Booking"}
+              <div className="form-actions-end">
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  <i className="fi fi-rr-check"></i>
+                  <span>{loading ? "Checking Conflicts..." : "Confirm Booking"}</span>
                 </button>
               </div>
             </form>
@@ -115,30 +117,30 @@ export default function AppointmentScheduler() {
         </div>
 
         <div className="col-5">
-          <div className="glass-panel" style={{ height: '100%', background: 'rgba(var(--secondary-rgb), 0.05)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <ShieldCheck size={20} strokeWidth={1.5} color="var(--secondary)" />
-              <h3 style={{ margin: 0, color: 'var(--secondary)' }}>Booking Policy</h3>
+          <div className="glass-panel policy-panel">
+            <div className="section-header">
+              <i className="fi fi-rr-shield-check section-icon-secondary"></i>
+              <h3 className="section-title text-secondary">Booking Policy</h3>
             </div>
-            <ul style={{ color: 'var(--text-secondary)', lineHeight: '1.8', listStyle: 'none', padding: 0 }}>
-              <li style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem' }}>
-                <AlertTriangle size={16} color="var(--warning)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+            <ul className="policy-list">
+              <li>
+                <i className="fi fi-rr-exclamation policy-icon-warning"></i>
                 <span>System automatically detects doctor time conflicts and prevents overlapping bookings.</span>
               </li>
-              <li style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem' }}>
-                <AlertTriangle size={16} color="var(--warning)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+              <li>
+                <i className="fi fi-rr-exclamation policy-icon-warning"></i>
                 <span>Ensure a minimum 15-minute buffer between consultations for clinical cleaning.</span>
               </li>
-              <li style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem' }}>
-                <AlertTriangle size={16} color="var(--warning)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+              <li>
+                <i className="fi fi-rr-exclamation policy-icon-warning"></i>
                 <span>Emergency bookings bypass routine slots and trigger high-priority queue alerts.</span>
               </li>
             </ul>
             
-            <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '2rem', border: '1px dashed var(--border)' }}>
-              <FileText size={48} color="var(--border)" strokeWidth={1} style={{ marginBottom: '1rem' }} />
-              <h4 style={{ color: 'var(--text-primary)' }}>Slot Availability</h4>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Full interactive availability grid coming in next update.</p>
+            <div className="card slot-card-placeholder">
+              <i className="fi fi-rr-list stat-icon-muted"></i>
+              <h4>Slot Availability</h4>
+              <p>Full interactive availability grid coming in next update.</p>
             </div>
           </div>
         </div>

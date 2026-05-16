@@ -1,4 +1,4 @@
-using CareBase.Infrastructure.Data;
+using CareBase.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

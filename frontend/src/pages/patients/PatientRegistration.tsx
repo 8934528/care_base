@@ -40,15 +40,17 @@ export default function PatientRegistration() {
 
   return (
     <div className="animate-fade-in">
-      <h1 style={{ marginBottom: '2rem' }}>Patient Registration</h1>
+      <div className="page-header">
+        <h1><i className="fi fi-rr-user-add"></i> Patient Registration</h1>
+      </div>
 
       <div className="glass-panel">
         <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-6">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <User size={20} strokeWidth={1.5} color="var(--primary)" />
-                <h3 style={{ margin: 0, color: 'var(--primary)' }}>Personal Information</h3>
+              <div className="section-header">
+                <i className="fi fi-rr-user section-icon"></i>
+                <h3 className="section-title">Personal Information</h3>
               </div>
               <div className="form-group">
                 <label className="form-label">First Name</label>
@@ -59,13 +61,13 @@ export default function PatientRegistration() {
                 <input name="lastName" placeholder="Last Name" className="form-input" onChange={handleChange} required />
               </div>
               <div className="row">
-                <div className="col-6" style={{ paddingLeft: 0 }}>
+                <div className="col-6 no-padding-left">
                   <div className="form-group">
                     <label className="form-label">ID Number</label>
                     <input name="idNumber" placeholder="ID Number" className="form-input" onChange={handleChange} required />
                   </div>
                 </div>
-                <div className="col-6" style={{ paddingRight: 0 }}>
+                <div className="col-6 no-padding-right">
                   <div className="form-group">
                     <label className="form-label">Gender</label>
                     <select name="gender" className="form-input" onChange={handleChange}>
@@ -83,9 +85,9 @@ export default function PatientRegistration() {
             </div>
 
             <div className="col-6">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <Phone size={20} strokeWidth={1.5} color="var(--primary)" />
-                <h3 style={{ margin: 0, color: 'var(--primary)' }}>Contact & Emergency</h3>
+              <div className="section-header">
+                <i className="fi fi-rr-phone-call section-icon"></i>
+                <h3 className="section-title">Contact & Emergency</h3>
               </div>
               <div className="form-group">
                 <label className="form-label">Phone</label>
@@ -97,19 +99,19 @@ export default function PatientRegistration() {
               </div>
               <div className="form-group">
                 <label className="form-label">Address</label>
-                <div style={{ position: 'relative' }}>
-                  <MapPin size={16} strokeWidth={1.5} style={{ position: 'absolute', right: '1rem', top: '1rem', color: 'var(--border)' }} />
+                <div className="input-with-icon">
+                  <i className="fi fi-rr-marker input-icon-right"></i>
                   <textarea name="address" placeholder="Physical Address" className="form-input" rows={2} onChange={handleChange} />
                 </div>
               </div>
               <div className="row">
-                <div className="col-6" style={{ paddingLeft: 0 }}>
+                <div className="col-6 no-padding-left">
                   <div className="form-group">
                     <label className="form-label">Emergency Name</label>
                     <input name="emergencyContactName" placeholder="Name" className="form-input" onChange={handleChange} />
                   </div>
                 </div>
-                <div className="col-6" style={{ paddingRight: 0 }}>
+                <div className="col-6 no-padding-right">
                   <div className="form-group">
                     <label className="form-label">Emergency Phone</label>
                     <input name="emergencyContactPhone" placeholder="Phone" className="form-input" onChange={handleChange} />
@@ -119,10 +121,10 @@ export default function PatientRegistration() {
             </div>
           </div>
 
-          <div className="form-group" style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <AlertCircle size={18} strokeWidth={1.5} color="var(--warning)" />
-              <label className="form-label" style={{ margin: 0 }}>Medical History (Allergies, Chronic Conditions, etc.)</label>
+          <div className="form-group mt-4">
+            <div className="section-header-compact">
+              <i className="fi fi-rr-interrogation section-icon-warning"></i>
+              <label className="form-label mb-0">Medical History (Allergies, Chronic Conditions, etc.)</label>
             </div>
             <textarea
               name="medicalHistory"
@@ -133,10 +135,10 @@ export default function PatientRegistration() {
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-            <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={loading}>
-              <Save size={18} strokeWidth={1.5} />
-              {loading ? "Registering..." : "Register Patient"}
+          <div className="form-actions-end">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              <i className="fi fi-rr-disk"></i>
+              <span>{loading ? "Registering..." : "Register Patient"}</span>
             </button>
           </div>
         </form>

@@ -2,9 +2,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using CareBase.Infrastructure.Data;
+using CareBase.Core.Data;
 using CareBase.Core.Services;
-using CareBase.Shared.Helpers;
+using CareBase.Core.Helpers;
 using CareBase.API.Middleware;
 using CareBase.API.Hubs;
 

@@ -39,26 +39,21 @@ export default function PatientSearch() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Search Patients</h1>
-        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => navigate("/patients/register")}>
-          <UserPlus size={18} strokeWidth={1.5} />
-          New Patient
+      <div className="page-header">
+        <h1><i className="fi fi-rr-search"></i> Search Patients</h1>
+        <button className="btn btn-primary" onClick={() => navigate("/patients/register")}>
+          <i className="fi fi-rr-user-add"></i>
+          <span>New Patient</span>
         </button>
       </div>
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <form onSubmit={handleSearch} className="row">
+      <div className="card mb-8">
+        <form onSubmit={handleSearch} className="row align-center">
           <div className="col-10">
-            <div style={{ position: 'relative' }}>
-              <Search 
-                size={18} 
-                strokeWidth={1.5} 
-                style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} 
-              />
+            <div className="input-with-icon">
+              <i className="fi fi-rr-search input-icon"></i>
               <input
-                className="form-input"
-                style={{ paddingLeft: '3rem' }}
+                className="form-input has-icon"
                 placeholder="Search by name, ID, or reference"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
@@ -73,40 +68,39 @@ export default function PatientSearch() {
         </form>
       </div>
 
-      <div className="glass-panel" style={{ padding: 0 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div className="glass-panel no-padding overflow-x">
+        <table className="data-table">
           <thead>
-            <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--border)' }}>
-              <th style={{ padding: '1rem' }}>Patient Ref</th>
-              <th style={{ padding: '1rem' }}>Full Name</th>
-              <th style={{ padding: '1rem' }}>ID Number</th>
-              <th style={{ padding: '1rem' }}>Actions</th>
+            <tr>
+              <th>Patient Ref</th>
+              <th>Full Name</th>
+              <th>ID Number</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {results.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                    <User size={48} strokeWidth={1} color="var(--border)" />
-                    {loading ? "Searching..." : "Enter a keyword to search patients"}
+                <td colSpan={4} className="text-center p-12">
+                  <div className="empty-state">
+                    <i className="fi fi-rr-user empty-state-icon"></i>
+                    <p>{loading ? "Searching..." : "Enter a keyword to search patients"}</p>
                   </div>
                 </td>
               </tr>
             ) : (
               results.map((p: any) => (
-                <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem', fontWeight: '600', color: 'var(--primary)' }}>{p.patientRef}</td>
-                  <td style={{ padding: '1rem' }}>{p.firstName} {p.lastName}</td>
-                  <td style={{ padding: '1rem' }}>{p.idNumber}</td>
-                  <td style={{ padding: '1rem' }}>
+                <tr key={p.id}>
+                  <td className="font-semibold text-primary">{p.patientRef}</td>
+                  <td>{p.firstName} {p.lastName}</td>
+                  <td>{p.idNumber}</td>
+                  <td>
                     <button 
-                      className="btn btn-primary" 
-                      style={{ fontSize: '0.75rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                      className="btn btn-primary btn-sm" 
                       onClick={() => handleAddToQueue(p)}
                     >
-                      <ListOrdered size={14} strokeWidth={2} />
-                      Add to Queue
+                      <i className="fi fi-rr-list-check"></i>
+                      <span>Add to Queue</span>
                     </button>
                   </td>
                 </tr>

@@ -1,6 +1,6 @@
 using CareBase.Core.Entities;
 using CareBase.Shared.DTOs;
-using CareBase.Infrastructure.Data;
+using CareBase.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using CareBase.Core.Hubs;

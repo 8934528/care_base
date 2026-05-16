@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface User {
   token: string;
@@ -15,17 +15,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
+  const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const fullName = localStorage.getItem('fullName');
 
     if (token && role && fullName) {
-      setUser({ token, role, fullName });
+      return { token, role, fullName };
     }
-  }, []);
+    return null;
+  });
 
   const login = (userData: User) => {
     setUser(userData);

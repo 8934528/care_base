@@ -7,7 +7,8 @@ import {
   ListOrdered, 
   FileText, 
   ClipboardList, 
-  BarChart3 
+  BarChart3,
+  Bell
 } from "lucide-react";
 
 const menuItems = [
@@ -34,7 +35,8 @@ export default function Sidebar() {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        CAREBASE
+        <img src="/logo.png" alt="CareBase Logo" className="sidebar-logo" />
+        <span>CAREBASE</span>
       </div>
       <nav className="nav-links">
         {filteredMenu.map((item) => (
@@ -42,18 +44,17 @@ export default function Sidebar() {
             key={item.path}
             to={item.path}
             className={`nav-item ${location.pathname.startsWith(item.path) ? "active" : ""}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
           >
-            <item.icon size={18} strokeWidth={1.5} />
-            {item.name}
+            <item.icon size={18} strokeWidth={1.5} className="nav-icon" />
+            <span>{item.name}</span>
           </Link>
         ))}
       </nav>
-      <div style={{ marginTop: 'auto', padding: '1rem' }}>
-        <div style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+      <div className="sidebar-footer">
+        <div className="user-info-label">
           Logged in as:
         </div>
-        <div style={{ padding: '0 1rem 1rem 1rem', fontWeight: '600', fontSize: '0.875rem' }}>
+        <div className="user-info-name">
           {user.fullName}
         </div>
       </div>
