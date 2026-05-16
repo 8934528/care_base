@@ -13,13 +13,13 @@ public class Patient
     public DateTime? DateOfBirth { get; set; }
 
     public required string Phone { get; set; }
-    public required string Email { get; set; }
-    public required string Address { get; set; }
+    public string? Email { get; set; }
+    public string? Address { get; set; }
 
-    public required string EmergencyContactName { get; set; }
-    public required string EmergencyContactPhone { get; set; }
+    public string? EmergencyContactName { get; set; }
+    public string? EmergencyContactPhone { get; set; }
 
-    public required string MedicalHistory { get; set; }
+    public string? MedicalHistory { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

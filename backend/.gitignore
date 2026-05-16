@@ -1,0 +1,11 @@
+build_errors.txt
+.env
+*.exe
+
+bin/*
+obj/*
+
+bin/
+obj/
+
+Debug/

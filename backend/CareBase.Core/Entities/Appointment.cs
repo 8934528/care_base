@@ -24,7 +24,7 @@ public class Appointment
 
     public string Priority { get; set; } = "Normal";
 
-    public required string Notes { get; set; }
+    public string? Notes { get; set; }
 
     public int? CreatedBy { get; set; }
 

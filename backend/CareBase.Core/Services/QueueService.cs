@@ -7,21 +7,14 @@ using CareBase.Core.Hubs;
 
 namespace CareBase.Core.Services;
 
-public class QueueService
+public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub> hubContext)
 {
-    private readonly AppDbContext _context;
-    private readonly IHubContext<QueueHub, IQueueHub> _hubContext;
+    private readonly AppDbContext _context = context;
+    private readonly IHubContext<QueueHub, IQueueHub> _hubContext = hubContext;
 
-    
-    public QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub> hubContext)
+    private static string GenerateQueueNumber()
     {
-        _context = context;
-        _hubContext = hubContext;
-    }
-
-    private string GenerateQueueNumber()
-    {
-        return $"Q-{DateTime.Now.Year}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}";
+        return $"Q-{DateTime.Now.Year}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
     }
 
     private async Task BroadcastQueueUpdate()

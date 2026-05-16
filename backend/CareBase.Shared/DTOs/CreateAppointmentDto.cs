@@ -12,11 +12,11 @@ public class CreateAppointmentDto
 
     public TimeSpan EndTime { get; set; }
 
-    public string AppointmentType { get; set; }
+    public required string AppointmentType { get; set; }
 
-    public string Reason { get; set; }
+    public required string Reason { get; set; }
 
-    public string Priority { get; set; }
+    public required string Priority { get; set; }
 
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
 }
