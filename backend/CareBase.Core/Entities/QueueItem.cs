@@ -13,7 +13,7 @@ public class QueueItem
 
     public required string AssignedTo { get; set; }
 
-    public DateTime CheckInTime { get; set; } = DateTime.Now;
+    public DateTime CheckInTime { get; set; } = DateTime.UtcNow;
     public DateTime? CalledTime { get; set; }
     public DateTime? CompletedTime { get; set; }
 }

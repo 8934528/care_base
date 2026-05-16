@@ -16,7 +16,7 @@ public class PatientService
 
     private string GeneratePatientRef()
     {
-        return $"PAT-{DateTime.Now.Year}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}";
+        return $"PAT-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}";
     }
 
     public async Task<Patient> RegisterPatient(CreatePatientDto dto)

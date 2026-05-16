@@ -12,7 +12,7 @@ public class MedicalRecord
 
     public required string VisitReference { get; set; }
 
-    public DateTime VisitDate { get; set; } = DateTime.Now;
+    public DateTime VisitDate { get; set; } = DateTime.UtcNow;
 
     // SOAP
     public required string Subjective { get; set; }
@@ -36,6 +36,6 @@ public class MedicalRecord
 
     public string Status { get; set; } = "Open";
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -9,7 +9,7 @@ public class MedicalRecordService(AppDbContext context)
 {
     private static string GenerateVisitRef()
     {
-        return $"VIS-{DateTime.Now.Year}-{Guid.NewGuid().ToString()[..5].ToUpper()}";
+        return $"VIS-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString()[..5].ToUpper()}";
     }
 
     public async Task<MedicalRecord> CreateRecord(CreateMedicalRecordDto dto)

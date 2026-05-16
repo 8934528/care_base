@@ -1,4 +1,4 @@
-﻿namespace CareBase.Core;
+namespace CareBase.Core;
 
 public class Class1
 {

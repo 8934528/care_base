@@ -18,7 +18,7 @@ public class AppointmentService
 
     private string GenerateAppointmentRef()
     {
-        return $"APT-{DateTime.Now.Year}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}";
+        return $"APT-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}";
     }
 
     public async Task<Appointment> CreateAppointment(CreateAppointmentDto dto)

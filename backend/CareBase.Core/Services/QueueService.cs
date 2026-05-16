@@ -14,7 +14,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
 
     private static string GenerateQueueNumber()
     {
-        return $"Q-{DateTime.Now.Year}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
+        return $"Q-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
     }
 
     private async Task BroadcastQueueUpdate()
@@ -65,7 +65,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             return null;
 
         next.Status = "InProgress";
-        next.CalledTime = DateTime.Now;
+        next.CalledTime = DateTime.UtcNow;
         next.AssignedTo = roleName;
 
         await _context.SaveChangesAsync();
@@ -82,7 +82,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         if (item != null)
         {
             item.Status = "Completed";
-            item.CompletedTime = DateTime.Now;
+            item.CompletedTime = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             

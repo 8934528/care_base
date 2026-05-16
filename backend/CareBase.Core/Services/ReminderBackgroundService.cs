@@ -23,11 +23,13 @@ public class ReminderBackgroundService : BackgroundService
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var notificationService = scope.ServiceProvider.GetRequiredService<NotificationService>();
 
-                var tomorrow = DateTime.Today.AddDays(1);
+                var today = DateTime.UtcNow.Date;
+                var tomorrowStart = today.AddDays(1);
+                var tomorrowEnd = today.AddDays(2);
 
                 // 1. Send Reminders for tomorrow
                 var appointments = await context.Appointments
-                    .Where(a => a.AppointmentDate.Date == tomorrow && a.Status == "Scheduled")
+                    .Where(a => a.AppointmentDate >= tomorrowStart && a.AppointmentDate < tomorrowEnd && a.Status == "Scheduled")
                     .ToListAsync();
 
                 foreach (var appointment in appointments)
@@ -44,7 +46,7 @@ public class ReminderBackgroundService : BackgroundService
 
                 // 2. Detect Missed Appointments (Scheduled in the past)
                 var missed = await context.Appointments
-                    .Where(a => a.AppointmentDate.Date < DateTime.Today && a.Status == "Scheduled")
+                    .Where(a => a.AppointmentDate < today && a.Status == "Scheduled")
                     .ToListAsync();
 
                 foreach (var appointment in missed)
