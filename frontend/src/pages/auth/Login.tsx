@@ -9,6 +9,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +17,6 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
@@ -30,13 +30,18 @@ export default function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="glass-panel animate-fade-in login-container">
-        <div className="login-header">
-          <img src="/carebase.png" alt="CareBase Logo" className="login-logo" />
-          <p className="login-subtitle">Clinical Information System</p>
+    <div className="auth-page">
+      {/* Background watermark logo */}
+      <img src="/carebase.png" alt="" className="auth-bg-watermark" aria-hidden="true" />
+
+      <div className="auth-card animate-fade-in">
+        {/* Card header */}
+        <div className="auth-card-header">
+          <img src="/carebase.png" alt="CareBase Logo" className="auth-logo" />
+          <h1 className="auth-title">Welcome back</h1>
+          <p className="auth-subtitle">Sign in to your Care Base account</p>
         </div>
-        
+
         {error && (
           <div className="error-box">
             <i className="fi fi-rr-shield-exclamation"></i>
@@ -44,16 +49,16 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address</label>
+        <form onSubmit={handleLogin} className="auth-form">
+          <div className="form-group mt-3 mb-3">
+            <label className="form-label" htmlFor="login-email">Email Address</label>
             <div className="input-with-icon">
               <i className="fi fi-rr-envelope input-icon"></i>
               <input
-                id="email"
+                id="login-email"
                 type="email"
                 className="form-input has-icon"
-                placeholder="doctor@carebase.com"
+                placeholder="email@carebase.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -61,29 +66,41 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
+          <div className="form-group mt-3 mb-3">
+            <label className="form-label" htmlFor="login-password">Password</label>
             <div className="input-with-icon">
               <i className="fi fi-rr-lock input-icon"></i>
               <input
-                id="password"
-                type="password"
-                className="form-input has-icon"
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                className="form-input has-icon has-icon-right"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <button
+                type="button"
+                className="eye-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <i className={`fi ${showPassword ? "fi-rr-eye-crossed" : "fi-rr-eye"}`}></i>
+              </button>
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block login-btn" disabled={loading}>
+          <button
+            type="submit"
+            className="btn btn-primary btn-block auth-submit-btn"
+            disabled={loading}
+          >
             <i className="fi fi-rr-sign-in-alt"></i>
             <span>{loading ? "Authenticating..." : "Sign In"}</span>
           </button>
         </form>
 
-        <div className="login-footer">
+        <div className="auth-footer">
           <span>Don't have an account? </span>
           <Link to="/register">Register here</Link>
         </div>

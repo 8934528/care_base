@@ -8,7 +8,7 @@ public static class DbInitializer
 {
     public static void Initialize(AppDbContext context)
     {
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
 
         if (context.Roles.Any()) return;
 
