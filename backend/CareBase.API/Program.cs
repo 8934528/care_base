@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,9 +13,13 @@ DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "../../.env"));
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddSignalR();
+
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 // Configure Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")?

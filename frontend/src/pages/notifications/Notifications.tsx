@@ -1,4 +1,24 @@
+import { useEffect, useState } from "react";
+import { getNotifications, type NotificationRecord } from "../../services/notificationService";
+
 export default function Notifications() {
+  const [records, setRecords] = useState<NotificationRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getNotifications();
+        setRecords(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load notifications", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <div className="animate-fade-in">
       <div className="page-header">
@@ -62,7 +82,56 @@ export default function Notifications() {
         </div>
 
         <div className="col-6">
-          <div className="glass-panel h-full bg-surface-faint">
+          <div className="glass-panel mb-8">
+            <div className="section-header">
+              <i className="fi fi-rr-time-past section-icon"></i>
+              <h3 className="section-title">Recent Notification Log</h3>
+            </div>
+            <div className="overflow-x">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Type</th>
+                    <th>Channel</th>
+                    <th>Status</th>
+                    <th>Sent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={5} className="text-center p-8">Loading...</td></tr>
+                  ) : records.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center p-8 text-secondary">No notifications logged yet</td></tr>
+                  ) : (
+                    records.map((n) => (
+                      <tr key={n.id}>
+                        <td>
+                          {n.patient
+                            ? `${n.patient.firstName} ${n.patient.lastName}`
+                            : `Patient #${n.patientId}`}
+                        </td>
+                        <td>{n.notificationType || "-"}</td>
+                        <td>{n.channel || "-"}</td>
+                        <td>
+                          <span className={`status-badge status-${n.status?.toLowerCase()}`}>
+                            {n.status}
+                          </span>
+                        </td>
+                        <td className="text-secondary text-sm">
+                          {n.sentAt
+                            ? new Date(n.sentAt).toLocaleString()
+                            : new Date(n.createdAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="glass-panel h-400 bg-surface-faint">
             <div className="section-header">
               <i className="fi fi-rr-shield-check section-icon-secondary"></i>
               <h3 className="section-title text-secondary">Compliance Policy</h3>

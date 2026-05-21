@@ -14,10 +14,35 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<QueueItem> Queue { get; set; } = null!;
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
+    public DbSet<StaffAvailability> StaffAvailabilities { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<StaffAvailability>()
+            .HasIndex(sa => new { sa.UserId, sa.DayOfWeek })
+            .IsUnique();
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Patient)
+            .WithMany()
+            .HasForeignKey(n => n.PatientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Appointment)
+            .WithMany()
+            .HasForeignKey(n => n.AppointmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Notification>()
+            .HasIndex(n => n.PatientId)
+            .HasDatabaseName("idx_notifications_patient");
+
+        modelBuilder.Entity<Notification>()
+            .HasIndex(n => n.Status)
+            .HasDatabaseName("idx_notifications_status");
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

@@ -18,7 +18,7 @@ export default function QueueManagement() {
   const loadQueue = useCallback(async () => {
     try {
       const data = await getQueue();
-      setQueue(data);
+      setQueue(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
       console.error("Failed to load queue", err);
     } finally {
@@ -27,20 +27,18 @@ export default function QueueManagement() {
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      await loadQueue();
-    };
-    init();
+    loadQueue();
 
     const startSignalR = async () => {
       try {
         if (queueConnection.state === "Disconnected") {
           await queueConnection.start();
-          console.log("SignalR Connected");
         }
 
         queueConnection.on("ReceiveQueueUpdate", (updatedQueue: QueueItem[]) => {
-          setQueue(updatedQueue);
+          if (Array.isArray(updatedQueue)) {
+            setQueue(updatedQueue);
+          }
         });
       } catch (err: unknown) {
         console.error("SignalR Connection Error: ", err);
@@ -50,27 +48,50 @@ export default function QueueManagement() {
     startSignalR();
 
     return () => {
-      if (queueConnection.state === "Connected") {
-        queueConnection.off("ReceiveQueueUpdate");
-      }
+      queueConnection.off("ReceiveQueueUpdate");
     };
   }, [loadQueue]);
 
   const handleCallNext = async () => {
     try {
-      await callNext();
+      const updated = await callNext();
+      if (updated) {
+        setQueue((prev) =>
+          prev.map((q) => (q.id === updated.id ? { ...q, ...updated, status: "InProgress" } : q))
+        );
+      }
+      await loadQueue();
     } catch (err) {
       console.error(err);
       alert("No patients in queue or error calling next");
     }
   };
 
-  const handleAction = async (action: (id: number) => Promise<void>, id: number) => {
+  const handleComplete = async (id: number) => {
+    setQueue((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, status: "Completed" } : q))
+    );
     try {
-      await action(id);
+      await completeQueue(id);
+      await loadQueue();
     } catch (err) {
       console.error(err);
-      alert("Action failed");
+      alert("Failed to complete queue item");
+      await loadQueue();
+    }
+  };
+
+  const handleSkip = async (id: number) => {
+    setQueue((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, status: "Skipped" } : q))
+    );
+    try {
+      await skipQueue(id);
+      await loadQueue();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to skip queue item");
+      await loadQueue();
     }
   };
 
@@ -142,14 +163,14 @@ export default function QueueManagement() {
                       <div className="action-buttons">
                         <button
                           className="btn btn-success btn-sm"
-                          onClick={() => handleAction(completeQueue, q.id)}
+                          onClick={() => handleComplete(q.id)}
                         >
                           <i className="fi fi-rr-check"></i>
                           <span>Complete</span>
                         </button>
                         <button
                           className="btn btn-warning btn-sm"
-                          onClick={() => handleAction(skipQueue, q.id)}
+                          onClick={() => handleSkip(q.id)}
                         >
                           <i className="fi fi-rr-redo"></i>
                           <span>Skip</span>

@@ -52,9 +52,11 @@ export default function PatientSearch() {
       });
       alert("Added to queue successfully");
       navigate("/queue");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to add to queue", err);
-      alert("Failed to add to queue");
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const errorMsg = axiosErr.response?.data?.message || "Failed to add to queue";
+      alert(errorMsg);
     }
   };
 

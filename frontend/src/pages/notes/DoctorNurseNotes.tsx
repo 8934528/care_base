@@ -53,7 +53,7 @@ export default function DoctorNurseNotes() {
       </div>
       
       <div className="row mt-8">
-        <div className="col-4">
+        <div className="col-6">
           <div className="glass-panel">
             <div className="section-header">
               <i className="fi fi-rr-add section-icon"></i>
@@ -80,7 +80,7 @@ export default function DoctorNurseNotes() {
           </div>
         </div>
 
-        <div className="col-8">
+        <div className="col-6">
           <div className="card min-h-500">
             <div className="section-header">
               <i className="fi fi-rr-history section-icon"></i>

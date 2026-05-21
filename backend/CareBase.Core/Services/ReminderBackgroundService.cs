@@ -22,7 +22,7 @@ public class ReminderBackgroundService(IServiceScopeFactory scopeFactory) : Back
                 var tomorrowStart = today.AddDays(1);
                 var tomorrowEnd = today.AddDays(2);
 
-                // 1. Send Reminders for tomorrow
+                // Send Reminders for tomorrow
                 var appointments = await context.Appointments
                     .Where(a => a.AppointmentDate >= tomorrowStart && a.AppointmentDate < tomorrowEnd && a.Status == "Scheduled")
                     .ToListAsync(stoppingToken);
@@ -34,12 +34,17 @@ public class ReminderBackgroundService(IServiceScopeFactory scopeFactory) : Back
                     {
                         string message = $"Reminder: You have a CAREBASE appointment tomorrow at {appointment.StartTime}. Reference: {appointment.AppointmentRef}";
                         try {
-                            await notificationService.SendSms(patient.Phone, message);
+                            await notificationService.SendSms(
+                                patient.Phone,
+                                message,
+                                patient.Id,
+                                appointment.Id,
+                                "Reminder");
                         } catch { /* Log failure */ }
                     }
                 }
 
-                // 2. Detect Missed Appointments (Scheduled in the past)
+                // Detect Missed Appointments (Scheduled in the past)
                 var missed = await context.Appointments
                     .Where(a => a.AppointmentDate < today && a.Status == "Scheduled")
                     .ToListAsync(stoppingToken);
@@ -52,7 +57,12 @@ public class ReminderBackgroundService(IServiceScopeFactory scopeFactory) : Back
                     {
                         string message = "You missed your CAREBASE appointment. Please contact the clinic to reschedule.";
                         try {
-                            await notificationService.SendSms(patient.Phone, message);
+                            await notificationService.SendSms(
+                                patient.Phone,
+                                message,
+                                patient.Id,
+                                appointment.Id,
+                                "MissedAppointment");
                         } catch { /* Log failure */ }
                     }
                 }

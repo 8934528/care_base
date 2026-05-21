@@ -51,7 +51,7 @@ export default function MedicalRecords() {
 
       <form onSubmit={handleSubmit} className="mt-8">
         <div className="row">
-          <div className="col-8">
+          <div className="col-6">
             <div className="glass-panel">
               <div className="section-header">
                 <i className="fi fi-rr-document-signed section-icon"></i>
@@ -111,7 +111,7 @@ export default function MedicalRecords() {
             </div>
           </div>
 
-          <div className="col-4">
+          <div className="col-6">
             <div className="glass-panel h-full">
               <div className="section-header">
                 <i className="fi fi-rr-heart-rate section-icon-secondary"></i>

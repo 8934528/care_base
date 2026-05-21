@@ -15,8 +15,15 @@ public class QueueController(QueueService service) : ControllerBase
     [HttpPost("add")]
     public async Task<IActionResult> Add([FromBody] AddToQueueDto dto)
     {
-        var result = await _service.AddToQueue(dto);
-        return Ok(result);
+        try
+        {
+            var result = await _service.AddToQueue(dto);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet]
@@ -29,11 +36,10 @@ public class QueueController(QueueService service) : ControllerBase
     [HttpPost("call-next")]
     public async Task<IActionResult> CallNext()
     {
-        var role = User.Identity?.Name ?? "Staff";
-        var result = await _service.CallNext(role);
+        var result = await _service.CallNext();
 
         if (result == null)
-            return NotFound("No patients in queue");
+            return NotFound(new { message = "No patients in queue" });
 
         return Ok(result);
     }

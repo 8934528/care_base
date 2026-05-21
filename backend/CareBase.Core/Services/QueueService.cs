@@ -25,6 +25,20 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
 
     public async Task<QueueItem> AddToQueue(AddToQueueDto dto)
     {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+
+        var alreadyQueuedToday = await _context.Queue.AnyAsync(q =>
+            q.PatientRef == dto.PatientRef &&
+            q.CheckInTime >= today &&
+            q.CheckInTime < tomorrow);
+
+        if (alreadyQueuedToday)
+            throw new InvalidOperationException(
+                $"Patient {dto.PatientRef} is already in today's queue and cannot be added again.");
+
+        var assignedClinician = await PickClinicianAsync(today, tomorrow);
+
         var item = new QueueItem
         {
             QueueNumber = GenerateQueueNumber(),
@@ -32,7 +46,8 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             PatientRef = dto.PatientRef,
             Priority = dto.Priority ?? "Normal",
             Status = "Waiting",
-            AssignedTo = "Unassigned"
+            AssignedTo = assignedClinician,
+            CheckInTime = DateTime.UtcNow
         };
 
         _context.Queue.Add(item);
@@ -41,6 +56,60 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         await BroadcastQueueUpdate();
 
         return item;
+    }
+
+    private async Task<string> PickClinicianAsync(DateTime today, DateTime tomorrow)
+    {
+        var todayDayOfWeek = today.DayOfWeek;
+
+        var activeStaff = await _context.Users
+            .Include(u => u.Role)
+            .Where(u => u.IsActive &&
+                        (u.Role.RoleName == "Doctor" || u.Role.RoleName == "Nurse"))
+            .ToListAsync();
+
+        if (activeStaff.Count == 0)
+            throw new InvalidOperationException(
+                "No active doctors or nurses are in the system. Please add clinical staff before queueing patients.");
+
+        var doctorsOnDutyToday = await _context.StaffAvailabilities
+            .Where(a => a.DayOfWeek == todayDayOfWeek)
+            .Select(a => a.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        var availableDoctors = activeStaff
+            .Where(u => u.Role.RoleName == "Doctor" && doctorsOnDutyToday.Contains(u.Id))
+            .ToList();
+
+        var availableNurses = activeStaff
+            .Where(u => u.Role.RoleName == "Nurse")
+            .ToList();
+
+        // Doctors only when scheduled today; nurses always cover the clinic
+        var assignmentPool = availableDoctors.Concat(availableNurses).ToList();
+
+        if (assignmentPool.Count == 0)
+            throw new InvalidOperationException(
+                "No nurses or on-duty doctors are available today. Add nurses or schedule a doctor for this day.");
+
+        var activeLoads = await _context.Queue
+            .Where(q => q.CheckInTime >= today &&
+                        q.CheckInTime < tomorrow &&
+                        (q.Status == "Waiting" || q.Status == "InProgress"))
+            .GroupBy(q => q.AssignedTo)
+            .Select(g => new { AssignedTo = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var loadByName = activeLoads.ToDictionary(x => x.AssignedTo, x => x.Count);
+
+        var minLoad = assignmentPool.Min(c => loadByName.GetValueOrDefault(c.FullName, 0));
+        var leastLoaded = assignmentPool
+            .Where(c => loadByName.GetValueOrDefault(c.FullName, 0) == minLoad)
+            .ToList();
+
+        var selected = leastLoaded[Random.Shared.Next(leastLoaded.Count)];
+        return selected.FullName;
     }
 
     public async Task<List<QueueItem>> GetQueue()
@@ -52,7 +121,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             .ToListAsync();
     }
 
-    public async Task<QueueItem?> CallNext(string roleName)
+    public async Task<QueueItem?> CallNext()
     {
         var next = await _context.Queue
             .Where(q => q.Status == "Waiting")
@@ -66,12 +135,11 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
 
         next.Status = "InProgress";
         next.CalledTime = DateTime.UtcNow;
-        next.AssignedTo = roleName;
 
         await _context.SaveChangesAsync();
-        
+
         await BroadcastQueueUpdate();
-        
+
         return next;
     }
 
@@ -85,7 +153,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             item.CompletedTime = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-            
+
             await BroadcastQueueUpdate();
         }
     }
@@ -98,7 +166,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         {
             item.Status = "Skipped";
             await _context.SaveChangesAsync();
-            
+
             await BroadcastQueueUpdate();
         }
     }

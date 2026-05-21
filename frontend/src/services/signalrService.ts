@@ -1,11 +1,10 @@
 import * as signalR from "@microsoft/signalr";
 
-const BASE_URL = "http://localhost:5000";
+const API_BASE = "http://localhost:5076";
 
 export const queueConnection = new signalR.HubConnectionBuilder()
-  .withUrl(`${BASE_URL}/queueHub`, {
-    skipNegotiation: true,
-    transport: signalR.HttpTransportType.WebSockets
+  .withUrl(`${API_BASE}/queueHub`, {
+    accessTokenFactory: () => localStorage.getItem("token") ?? "",
   })
   .withAutomaticReconnect()
   .build();

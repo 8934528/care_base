@@ -64,7 +64,12 @@ public class AppointmentService(AppDbContext context, NotificationService notifi
             try
             {
                 string message = $"CAREBASE: Appointment Confirmed. Date: {appointment.AppointmentDate:yyyy-MM-dd} at {appointment.StartTime}. Ref: {appointment.AppointmentRef}";
-                await _notificationService.SendSms(patient.Phone, message);
+                await _notificationService.SendSms(
+                    patient.Phone,
+                    message,
+                    patient.Id,
+                    appointment.Id,
+                    "Confirmation");
             }
             catch { /* Silent fail for demo purposes, should log in production */ }
         }

@@ -36,6 +36,47 @@ public static class DbInitializer
             context.SaveChanges();
         }
 
+        var doctorRole = context.Roles.FirstOrDefault(r => r.RoleName == "Doctor");
+        if (doctorRole != null && !context.Users.Any(u => u.RoleId == doctorRole.Id))
+        {
+            context.Users.Add(new User
+            {
+                FullName = "Dr. Sarah Mokoena",
+                Email = "doctor@carebase.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Doctor@123"),
+                RoleId = doctorRole.Id,
+                IsActive = true
+            });
+            context.SaveChanges();
+        }
+
+        var nurseRole = context.Roles.FirstOrDefault(r => r.RoleName == "Nurse");
+        if (nurseRole != null && !context.Users.Any(u => u.RoleId == nurseRole.Id))
+        {
+            context.Users.Add(new User
+            {
+                FullName = "Nurse Thandi Nkosi",
+                Email = "nurse@carebase.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Nurse@123"),
+                RoleId = nurseRole.Id,
+                IsActive = true
+            });
+            context.SaveChanges();
+        }
+
+        var demoDoctor = context.Users
+            .Include(u => u.Role)
+            .FirstOrDefault(u => u.Role.RoleName == "Doctor");
+
+        if (demoDoctor != null && !context.StaffAvailabilities.Any(a => a.UserId == demoDoctor.Id))
+        {
+            context.StaffAvailabilities.AddRange(
+                new StaffAvailability { UserId = demoDoctor.Id, DayOfWeek = DayOfWeek.Monday },
+                new StaffAvailability { UserId = demoDoctor.Id, DayOfWeek = DayOfWeek.Wednesday }
+            );
+            context.SaveChanges();
+        }
+
         if (!context.Patients.Any())
         {
             try
