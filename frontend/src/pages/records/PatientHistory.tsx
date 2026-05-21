@@ -22,7 +22,7 @@ export default function PatientHistory({ patientId }: { patientId: number }) {
 
   return (
     <div className="animate-fade-in">
-      <h2 className="mb-8">Clinical History</h2>
+      <h2 className="mb-8">CareBase History</h2>
 
       {loading ? (
         <p>Loading history...</p>

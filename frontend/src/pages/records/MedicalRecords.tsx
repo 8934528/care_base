@@ -46,7 +46,7 @@ export default function MedicalRecords() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <h1>SOAP Clinical Consultation</h1>
+        <h1>CareBase Consultation</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8">
@@ -72,7 +72,7 @@ export default function MedicalRecords() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="objective">Objective (Clinical Observations)</label>
+                <label className="form-label" htmlFor="objective">Objective (CareBase Observations)</label>
                 <textarea
                   id="objective"
                   className="form-input"
@@ -89,7 +89,7 @@ export default function MedicalRecords() {
                   id="assessment"
                   className="form-input"
                   name="assessment"
-                  placeholder="Diagnosis and clinical assessment..."
+                  placeholder="Diagnosis and CareBase assessment..."
                   rows={3}
                   onChange={handleChange}
                   required

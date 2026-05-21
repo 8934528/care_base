@@ -36,7 +36,7 @@ export default function Reports() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <h1><i className="fi fi-rr-document-signed"></i> Clinical Reports</h1>
+        <h1><i className="fi fi-rr-document-signed"></i> CareBase Reports</h1>
       </div>
 
       <div className="row metrics-row mt-8">
