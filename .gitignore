@@ -250,10 +250,6 @@ pnpm-lock.yaml
 *.dump
 postgres-data/
 
-# MySQL / MariaDB
-*.sql
-mysql-data/
-
 # MongoDB
 mongodb-data/
 *.bson
