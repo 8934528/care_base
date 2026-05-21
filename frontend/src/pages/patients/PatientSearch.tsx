@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { searchPatients } from "../../services/patientService";
 import { addToQueue } from "../../services/queueService";
 import { useNavigate, Link } from "react-router-dom";
@@ -16,20 +16,31 @@ export default function PatientSearch() {
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const loadPatients = async (searchKeyword: string) => {
     setLoading(true);
     try {
-      const data = await searchPatients(keyword);
-      setResults(data);
+      const data = await searchPatients(searchKeyword);
+      setResults(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
       console.error("Search failed", err);
+      setResults([]);
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
+  };
+
+  useEffect(() => {
+    loadPatients("");
+  }, []);
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await loadPatients(keyword);
   };
 
   const handleAddToQueue = async (patient: Patient) => {
@@ -94,7 +105,13 @@ export default function PatientSearch() {
                 <td colSpan={4} className="text-center p-12">
                   <div className="empty-state">
                     <i className="fi fi-rr-user empty-state-icon"></i>
-                    <p>{loading ? "Searching..." : "Enter a keyword to search patients"}</p>
+                    <p>
+                      {loading
+                        ? "Loading patients..."
+                        : hasLoaded
+                          ? "No patients found"
+                          : "Loading patients..."}
+                    </p>
                   </div>
                 </td>
               </tr>

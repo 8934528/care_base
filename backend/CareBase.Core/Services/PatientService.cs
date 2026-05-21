@@ -16,6 +16,7 @@ public class PatientService(AppDbContext context)
 
     public async Task<Patient> RegisterPatient(CreatePatientDto dto)
     {
+        var now = DateTime.UtcNow;
         var patient = new Patient
         {
             PatientRef = GeneratePatientRef(),
@@ -23,7 +24,11 @@ public class PatientService(AppDbContext context)
             LastName = dto.LastName,
             IdNumber = dto.IdNumber,
             Gender = dto.Gender,
-            DateOfBirth = dto.DateOfBirth,
+            DateOfBirth = dto.DateOfBirth.HasValue
+                ? DateTime.SpecifyKind(dto.DateOfBirth.Value, DateTimeKind.Utc)
+                : null,
+            CreatedAt = now,
+            UpdatedAt = now,
             Phone = dto.Phone,
             Email = dto.Email,
             Address = dto.Address,

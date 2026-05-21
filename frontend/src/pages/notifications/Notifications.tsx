@@ -6,7 +6,7 @@ export default function Notifications() {
       </div>
 
       <div className="row mt-8">
-        <div className="col-8">
+        <div className="col-6">
           <div className="glass-panel mb-8">
             <div className="section-header">
               <i className="fi fi-rr-comment section-icon"></i>
@@ -41,19 +41,19 @@ export default function Notifications() {
             </div>
             
             <div className="stats-grid-2">
-              <div className="card p-4">
+              <div className="card p-2">
                 <h5 className="text-primary mb-2">Confirmations</h5>
                 <p className="text-sm text-secondary">Sent immediately upon booking an appointment.</p>
               </div>
-              <div className="card p-4">
+              <div className="card p-2">
                 <h5 className="text-primary mb-2">24h Reminders</h5>
                 <p className="text-sm text-secondary">Background service sends alerts for tomorrow's visits.</p>
               </div>
-              <div className="card p-4">
+              <div className="card p-2">
                 <h5 className="text-primary mb-2">Missed Visits</h5>
                 <p className="text-sm text-secondary">Detection service notifies patients who failed to show.</p>
               </div>
-              <div className="card p-4">
+              <div className="card p-2">
                 <h5 className="text-primary mb-2">Queue Alerts</h5>
                 <p className="text-sm text-secondary">Real-time SignalR notifications for waiting patients.</p>
               </div>
@@ -61,7 +61,7 @@ export default function Notifications() {
           </div>
         </div>
 
-        <div className="col-4">
+        <div className="col-6">
           <div className="glass-panel h-full bg-surface-faint">
             <div className="section-header">
               <i className="fi fi-rr-shield-check section-icon-secondary"></i>

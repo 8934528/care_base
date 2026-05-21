@@ -43,7 +43,7 @@ export default function AppointmentScheduler() {
       </div>
 
       <div className="row">
-        <div className="col-7">
+        <div className="col-6">
           <div className="glass-panel">
             <div className="section-header">
               <i className="fi fi-rr-calendar section-icon"></i>
@@ -116,7 +116,7 @@ export default function AppointmentScheduler() {
           </div>
         </div>
 
-        <div className="col-5">
+        <div className="col-6">
           <div className="glass-panel policy-panel">
             <div className="section-header">
               <i className="fi fi-rr-shield-check section-icon-secondary"></i>
