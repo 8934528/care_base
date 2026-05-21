@@ -37,7 +37,11 @@ export default function DoctorNurseNotes() {
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/notes", { content: newNote, patientId: Number(patientId) });
+      await api.post("/notes", {
+        noteContent: newNote,
+        patientId: Number(patientId),
+        noteType: "CareBase"
+      });
       setNewNote("");
       await fetchNotes();
     } catch (err) {
@@ -49,7 +53,7 @@ export default function DoctorNurseNotes() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <h1><i className="fi fi-rr-comment-medical"></i> Clinical Visit Notes</h1>
+        <h1><i className="fi fi-rr-comment-medical"></i> CareBase Visit Notes</h1>
       </div>
       
       <div className="row mt-8">
@@ -74,7 +78,7 @@ export default function DoctorNurseNotes() {
               </div>
               <button type="submit" className="btn btn-primary btn-block">
                 <i className="fi fi-rr-disk"></i>
-                <span>Add Clinical Note</span>
+                <span>Add CareBase Note</span>
               </button>
             </form>
           </div>
@@ -90,12 +94,12 @@ export default function DoctorNurseNotes() {
               {loading ? (
                 <div className="loading-state p-12">
                    <i className="fi fi-rr-refresh animate-spin loading-icon"></i>
-                   <p>Loading clinical notes...</p>
+                   <p>Loading CareBase notes...</p>
                 </div>
               ) : notes.length === 0 ? (
                 <div className="empty-state p-12">
                    <i className="fi fi-rr-document empty-state-icon"></i>
-                   <p>No clinical notes for this patient.</p>
+                   <p>No CareBase notes for this patient.</p>
                 </div>
               ) : (
                 <div className="notes-list">

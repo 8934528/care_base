@@ -58,6 +58,7 @@ builder.Services.AddScoped<QueueService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<StaffService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddHostedService<ReminderBackgroundService>();
 

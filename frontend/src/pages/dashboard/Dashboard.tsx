@@ -38,8 +38,12 @@ export default function Dashboard() {
     return () => { isMounted = false; };
   }, []);
 
-  if (loading || !data) {
-    return <div className="animate-fade-in text-center p-4">Loading Clinical Analytics...</div>;
+  if (loading) {
+    return <div className="animate-fade-in text-center p-4">Loading CareBase Analytics...</div>;
+  }
+
+  if (!data) {
+    return <div className="animate-fade-in text-center p-4 text-secondary">Failed to load dashboard. Ensure the backend is running.</div>;
   }
 
   const COLORS = ['var(--primary)', 'var(--secondary)', 'var(--warning)', 'var(--error)', '#8884d8'];
@@ -47,7 +51,7 @@ export default function Dashboard() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <h1><i className="fi fi-rr-stats"></i> Clinical Intelligence Dashboard</h1>
+        <h1><i className="fi fi-rr-stats"></i>Intelligence Dashboard</h1>
         <div className="operational-visibility">
           <i className="fi fi-rr-pulse"></i>
           <span>Real-time Operational Visibility</span>
@@ -103,6 +107,9 @@ export default function Dashboard() {
               Disease Trends (Top Diagnoses)
             </h3>
             <div className="chart-container">
+              {data.diseaseTrends.length === 0 ? (
+                <div className="empty-state p-12"><p className="text-secondary">No medical record diagnoses yet.</p></div>
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.diseaseTrends} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -115,6 +122,7 @@ export default function Dashboard() {
                   <Bar dataKey="totalCases" fill="var(--primary)" />
                 </BarChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -127,35 +135,41 @@ export default function Dashboard() {
               Gender Distribution
             </h3>
             <div className="chart-container">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data.genderStats}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="total"
-                    nameKey="gender"
-                  >
-                    {data.genderStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 0 }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="chart-legend">
-                {data.genderStats.map((entry, index) => (
-                  <div key={index} className="legend-item">
-                    <div className="legend-color" style={{ background: COLORS[index % COLORS.length] }}></div>
-                    <span>{entry.gender}: {entry.total}</span>
-                  </div>
-                ))}
-              </div>
+              {data.genderStats.length === 0 ? (
+                <div className="empty-state p-12"><p className="text-secondary">No patients registered yet.</p></div>
+              ) : (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data.genderStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="total"
+                      nameKey="gender"
+                    >
+                      {data.genderStats.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 0 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="chart-legend">
+                  {data.genderStats.map((entry, index) => (
+                    <div key={index} className="legend-item">
+                      <div className="legend-color" style={{ background: COLORS[index % COLORS.length] }}></div>
+                      <span>{entry.gender}: {entry.total}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+              )}
             </div>
           </div>
         </div>

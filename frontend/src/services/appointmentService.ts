@@ -1,8 +1,25 @@
 import { api } from "./api";
 import type { Appointment } from "../types";
 
-export const createAppointment = async (data: Partial<Appointment>) => {
-  const res = await api.post("/appointments", data);
+export interface CreateAppointmentPayload {
+  patientId: number;
+  doctorId?: number | null;
+  appointmentDate: string;
+  startTime: string;
+  endTime: string;
+  appointmentType: string;
+  reason: string;
+  priority: string;
+  notes?: string;
+}
+
+export const createAppointment = async (data: CreateAppointmentPayload) => {
+  const res = await api.post("/appointments", {
+    ...data,
+    startTime: data.startTime.length === 5 ? `${data.startTime}:00` : data.startTime,
+    endTime: data.endTime.length === 5 ? `${data.endTime}:00` : data.endTime,
+    doctorId: data.doctorId ?? null,
+  });
   return res.data;
 };
 

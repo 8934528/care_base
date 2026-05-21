@@ -10,28 +10,34 @@ public class DashboardService(AppDbContext context)
 
     public async Task<DashboardStatsDto> GetDashboard()
     {
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
 
         var dailyVisits = await _context.MedicalRecords
-            .CountAsync(x => x.VisitDate.Date == today);
+            .CountAsync(x => x.VisitDate >= today && x.VisitDate < tomorrow);
 
         var queueLoad = await _context.Queue
-            .CountAsync(x => x.Status == "Waiting");
+            .CountAsync(x => x.Status == "Waiting" || x.Status == "InProgress");
 
-        var activeDoctors = await _context.MedicalRecords
-            .Where(x => x.VisitDate.Date == today)
-            .Select(x => x.DoctorId)
+        var onDutyDoctorIds = await _context.StaffAvailabilities
+            .Where(a => a.DayOfWeek == today.DayOfWeek)
+            .Select(a => a.UserId)
             .Distinct()
             .CountAsync();
+
+        var activeDoctors = onDutyDoctorIds > 0
+            ? onDutyDoctorIds
+            : await _context.Users.CountAsync(u => u.IsActive && u.Role.RoleName == "Doctor");
 
         var completedConsultations = await _context.Queue
             .CountAsync(x =>
                 x.Status == "Completed" &&
-                x.CompletedTime.HasValue && 
-                x.CompletedTime.Value.Date == today);
+                x.CompletedTime.HasValue &&
+                x.CompletedTime.Value >= today &&
+                x.CompletedTime.Value < tomorrow);
 
         var diseaseTrends = await _context.MedicalRecords
-            .Where(x => x.Assessment != null)
+            .Where(x => !string.IsNullOrEmpty(x.Assessment))
             .GroupBy(x => x.Assessment)
             .Select(g => new DiseaseTrendDto
             {
@@ -69,6 +75,38 @@ public class DashboardService(AppDbContext context)
             DiseaseTrends = diseaseTrends,
             GenderStats = genderStats,
             AppointmentStats = appointmentStats
+        };
+    }
+
+    public async Task<ReportsDto> GetReports()
+    {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+        var dashboard = await GetDashboard();
+
+        var monthlyVisits = await _context.MedicalRecords
+            .GroupBy(x => new { x.VisitDate.Year, x.VisitDate.Month })
+            .Select(g => new MonthlyTrendDto
+            {
+                Month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                TotalVisits = g.Count()
+            })
+            .OrderBy(x => x.Month)
+            .Take(12)
+            .ToListAsync();
+
+        return new ReportsDto
+        {
+            TotalPatients = await _context.Patients.CountAsync(),
+            TodayAppointments = await _context.Appointments
+                .CountAsync(a => a.AppointmentDate >= today && a.AppointmentDate < tomorrow),
+            CurrentQueue = await _context.Queue
+                .CountAsync(q => q.Status == "Waiting" || q.Status == "InProgress"),
+            CompletedToday = dashboard.CompletedConsultations,
+            DiseaseTrends = dashboard.DiseaseTrends,
+            GenderStats = dashboard.GenderStats,
+            AppointmentStats = dashboard.AppointmentStats,
+            MonthlyVisits = monthlyVisits
         };
     }
 }

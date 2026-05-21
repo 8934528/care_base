@@ -17,7 +17,7 @@ const menuItems = [
   { name: "Appointments", path: "/appointments", icon: Calendar, roles: ["Admin", "Doctor", "Nurse", "Clerk"] },
   { name: "Queue", path: "/queue", icon: ListOrdered, roles: ["Admin", "Nurse", "Clerk"] },
   { name: "Medical Records", path: "/records", icon: FileText, roles: ["Admin", "Doctor"] },
-  { name: "Clinical Notes", path: "/notes", icon: ClipboardList, roles: ["Doctor", "Nurse"] },
+  { name: "CareBase Notes", path: "/notes", icon: ClipboardList, roles: ["Doctor", "Nurse"] },
   { name: "Notifications", path: "/notifications", icon: Bell, roles: ["Admin", "Clerk"] },
   { name: "Reports", path: "/reports", icon: BarChart3, roles: ["Admin"] },
 ];
@@ -36,7 +36,7 @@ export default function Sidebar() {
     <div className="sidebar">
       <div className="sidebar-header">
         <img src="/logo.png" alt="CareBase Logo" className="sidebar-logo" />
-        <span>CAREBASE</span>
+        <span>CareBase</span>
       </div>
       <nav className="nav-links">
         {filteredMenu.map((item) => (

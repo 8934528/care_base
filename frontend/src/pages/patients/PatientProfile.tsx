@@ -107,7 +107,7 @@ export default function PatientProfile() {
           {(user?.role === "Admin" || user?.role === "Doctor" || user?.role === "Nurse") && (
             <Link to={`/notes/${patient.id}`} className="btn btn-ghost" style={{ backgroundColor: "rgba(99, 102, 241, 0.1)", color: "var(--primary)" }}>
               <i className="fi fi-rr-comment-medical"></i>
-              <span>Clinical Notes</span>
+              <span>CareBase Notes</span>
             </Link>
           )}
         </div>

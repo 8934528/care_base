@@ -137,11 +137,11 @@ export default function Notifications() {
               <h3 className="section-title text-secondary">Compliance Policy</h3>
             </div>
             <ul className="policy-list-compact">
-              <li>No sensitive clinical data in SMS messages.</li>
+              <li>No sensitive CareBase data in SMS messages.</li>
               <li>Patient privacy preserved in all automated texts.</li>
               <li>Encrypted delivery channel via Twilio.</li>
               <li>Audit logs maintained for all communications.</li>
-              <li>Opt-out capability for clinical marketing.</li>
+              <li>Opt-out capability for CareBase marketing.</li>
             </ul>
             
             <div className="mt-12 text-center op-20">

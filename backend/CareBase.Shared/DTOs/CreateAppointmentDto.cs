@@ -4,7 +4,7 @@ public class CreateAppointmentDto
 {
     public int PatientId { get; set; }
 
-    public int DoctorId { get; set; }
+    public int? DoctorId { get; set; }
 
     public DateTime AppointmentDate { get; set; }
 
@@ -14,7 +14,7 @@ public class CreateAppointmentDto
 
     public required string AppointmentType { get; set; }
 
-    public required string Reason { get; set; }
+    public string Reason { get; set; } = "";
 
     public required string Priority { get; set; }
 
