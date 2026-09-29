@@ -12,7 +12,9 @@ Digital patient data capturing and workflow management system for healthcare env
 
 ## Overview
 
-CareBase is a modern, integrated healthcare management system designed to streamline patient registration, medical record keeping, appointment scheduling, and queue management.
+CareBase is a modern, integrated healthcare management system designed to streamline patient registration, medical record keeping, appointment scheduling, and queue management. 
+
+    focuses on data integrity, usability, and secure handling of sensitive information. 
 
 ## Tech Stack
 
