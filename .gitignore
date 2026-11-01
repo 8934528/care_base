@@ -19,8 +19,7 @@ build
 
 # Environment variables
 .env
-.env.*
-!.env.example
+
 
 # IDEs and Editors
 .vscode/*
@@ -30,7 +29,6 @@ build
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
 
 # Vite files
@@ -168,7 +166,6 @@ node_modules/
 
 # Environment variables
 .env
-.env.*
 
 # Coverage reports
 coverage/
