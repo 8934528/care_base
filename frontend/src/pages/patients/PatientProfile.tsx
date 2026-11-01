@@ -1,216 +1,222 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getPatientByRef } from "../../services/patientService";
 import { addToQueue } from "../../services/queueService";
 import { useAuth } from "../../context/AuthContext";
-
-interface PatientDetails {
-  id: number;
-  patientRef: string;
-  firstName: string;
-  lastName: string;
-  idNumber: string;
-  gender: string;
-  dateOfBirth: string;
-  phone: string;
-  email: string;
-  address: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
-  medicalHistory: string;
-}
+import { useToast } from "../../context/ToastContext";
+import type { Patient } from "../../types";
+import {
+  Card,
+  Button,
+  Badge,
+  PageHeader,
+  LoadingSpinner,
+  EmptyState
+} from "../../components/common";
 
 export default function PatientProfile() {
-  const { patientRef } = useParams();
+  const { patientRef } = useParams<{ patientRef: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  const [patient, setPatient] = useState<PatientDetails | null>(null);
+  const { showToast } = useToast();
+
+  const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [queueLoading, setQueueLoading] = useState(false);
+
+  const fetchPatient = useCallback(async () => {
+    if (!patientRef) return;
+    setLoading(true);
+    try {
+      const data = await getPatientByRef(patientRef);
+      setPatient(data);
+    } catch {
+      showToast("Unable to load patient profile.", "danger");
+    } finally {
+      setLoading(false);
+    }
+  }, [patientRef, showToast]);
 
   useEffect(() => {
-    const fetchPatient = async () => {
-      try {
-        if (!patientRef) return;
-        const data = await getPatientByRef(patientRef);
-        setPatient(data);
-      } catch (err) {
-        console.error("Failed to fetch patient", err);
-        setError("Patient not found or an error occurred.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPatient();
-  }, [patientRef]);
+  }, [fetchPatient]);
 
   const handleQueue = async () => {
     if (!patient) return;
+    setQueueLoading(true);
     try {
       await addToQueue({
         patientId: patient.id,
         patientRef: patient.patientRef,
         priority: "Normal"
       });
-      alert("Patient added to queue successfully.");
+      showToast(`Patient ${patient.patientRef} checked in to queue.`, "success");
       navigate("/queue");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add patient to queue.");
+    } catch (err: unknown) {
+      const errObj = err as { response?: { data?: { message?: string } } };
+      showToast(errObj.response?.data?.message || "Patient could not be added to queue.", "danger");
+    } finally {
+      setQueueLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading) return <LoadingSpinner message="Loading patient profile..." />;
+  if (!patient) {
     return (
-      <div className="flex-center-col animate-fade-in">
-        <i className="fi fi-rr-refresh animate-spin loading-icon" style={{ fontSize: "3rem" }}></i>
-        <h3 className="mt-4 text-secondary">Loading Patient Profile...</h3>
-      </div>
+      <EmptyState
+        icon="bi-person-x"
+        title="Patient not found"
+        message={`No active patient record matches reference "${patientRef}".`}
+        action={
+          <Button variant="outline" onClick={() => navigate("/patients")}>
+            Back to Patient Directory
+          </Button>
+        }
+      />
     );
   }
 
-  if (error || !patient) {
-    return (
-      <div className="flex-center-col animate-fade-in">
-        <i className="fi fi-rr-user-injured text-error" style={{ fontSize: "4rem" }}></i>
-        <h2 className="mt-4 text-primary">Patient Not Found</h2>
-        <p className="text-secondary">{error}</p>
-        <button className="btn btn-primary mt-4" onClick={() => navigate("/patients")}>
-          Back to Patient Search
-        </button>
-      </div>
-    );
-  }
+  const birthDate = patient.dateOfBirth ? new Date(patient.dateOfBirth) : null;
+  const age = birthDate ? new Date().getFullYear() - birthDate.getFullYear() : null;
 
-  // Calculate Age
-  const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
+  const canViewClinical = user?.role === "Doctor" || user?.role === "Nurse" || user?.role === "Admin" || user?.role === "Manager";
 
   return (
-    <div className="animate-fade-in">
-      <div className="page-header flex-between align-center">
-        <div>
-          <h1><i className="fi fi-rr-id-badge"></i> Patient Profile</h1>
-          <p className="text-secondary mt-1">Viewing comprehensive details for {patient.patientRef}</p>
-        </div>
-        <div className="action-buttons">
-          <button className="btn btn-primary" onClick={handleQueue}>
-            <i className="fi fi-rr-list-check"></i>
-            <span>Add to Queue</span>
-          </button>
-          {(user?.role === "Admin" || user?.role === "Doctor") && (
-            <Link to={`/records/${patient.id}`} className="btn btn-secondary" style={{ backgroundColor: "var(--secondary)", color: "white" }}>
-              <i className="fi fi-rr-file-medical"></i>
-              <span>Medical Records</span>
-            </Link>
-          )}
-          {(user?.role === "Admin" || user?.role === "Doctor" || user?.role === "Nurse") && (
-            <Link to={`/notes/${patient.id}`} className="btn btn-ghost" style={{ backgroundColor: "rgba(99, 102, 241, 0.1)", color: "var(--primary)" }}>
-              <i className="fi fi-rr-comment-medical"></i>
-              <span>CareBase Notes</span>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="row mt-8">
-        <div className="col-6">
-          <div className="glass-panel text-center mb-4">
-            <div style={{ width: "100px", height: "100px", borderRadius: "50%", backgroundColor: "var(--primary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", margin: "0 auto 1.5rem" }}>
-              <i className="fi fi-rr-user"></i>
-            </div>
-            <h2 className="mb-2">{patient.firstName} {patient.lastName}</h2>
-            <div className="status-badge priority-normal mb-3" style={{ fontSize: "1rem", padding: "0.4rem 1rem" }}>
-              {patient.patientRef}
-            </div>
-            <div className="text-secondary text-sm mb-4">
-              <i className="fi fi-rr-id-badge"></i> ID: {patient.idNumber}
-            </div>
-            
-            <hr style={{ border: "0", borderTop: "1px solid var(--border)", margin: "1.5rem 0" }} />
-            
-            <div className="stats-grid-2 text-left">
-              <div>
-                <span className="text-xs text-secondary uppercase font-semibold">Age</span>
-                <p className="font-bold">{age} yrs</p>
-              </div>
-              <div>
-                <span className="text-xs text-secondary uppercase font-semibold">Gender</span>
-                <p className="font-bold">{patient.gender}</p>
-              </div>
-              <div>
-                <span className="text-xs text-secondary uppercase font-semibold">DOB</span>
-                <p className="font-bold">{new Date(patient.dateOfBirth).toLocaleDateString()}</p>
-              </div>
-            </div>
+    <div className="cb-page container-fluid px-0">
+      <PageHeader
+        title={`${patient.firstName} ${patient.lastName}`}
+        subtitle={`CareBase Patient Identifier: ${patient.patientRef}`}
+        badge={<Badge status="Registered" variant="active" />}
+        actions={
+          <div className="d-flex align-items-center gap-2">
+            <Button variant="outline" icon="bi-arrow-left" onClick={() => navigate("/patients")}>
+              Back
+            </Button>
+            <Button
+              variant="primary"
+              icon="bi-list-check"
+              onClick={handleQueue}
+              loading={queueLoading}
+            >
+              Check-in to queue
+            </Button>
+            {canViewClinical && (
+              <Button
+                variant="outline"
+                icon="bi-journal-medical"
+                onClick={() => navigate(`/records/${patient.id}`)}
+              >
+                Clinical records
+              </Button>
+            )}
+            {(user?.role === "Doctor" || user?.role === "Nurse") && (
+              <Button
+                variant="outline"
+                icon="bi-clipboard2-pulse"
+                onClick={() => navigate(`/notes/${patient.id}`)}
+              >
+                Clinical notes
+              </Button>
+            )}
           </div>
-          
-          <div className="glass-panel" style={{ backgroundColor: "rgba(239, 68, 68, 0.03)" }}>
-            <div className="section-header-compact">
-              <i className="fi fi-rr-siren section-icon-warning text-error"></i>
-              <h3 className="section-title text-error" style={{ fontSize: "1rem" }}>Emergency Contact</h3>
+        }
+      />
+
+      <div className="row g-3">
+        {/* Patient Identity & Demographics */}
+        <div className="col-12 col-lg-4">
+          <Card title="Demographics" className="mb-3">
+            <div className="d-flex align-items-center mb-3">
+              <div className="cb-avatar cb-avatar-lg me-3">
+                {patient.firstName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h5 className="m-0">{patient.firstName} {patient.lastName}</h5>
+                <code className="cb-code-pill mt-1 d-inline-block">{patient.patientRef}</code>
+              </div>
             </div>
-            <div className="mt-4">
-              <p className="font-semibold mb-1">{patient.emergencyContactName}</p>
-              <p className="text-secondary">
-                <i className="fi fi-rr-phone-call mr-2"></i>
-                {patient.emergencyContactPhone}
+
+            <div className="cb-profile-field-list">
+              <div className="cb-profile-field">
+                <span className="text-muted small">National ID Number</span>
+                <span className="fw-semibold">{patient.idNumber}</span>
+              </div>
+              <div className="cb-profile-field">
+                <span className="text-muted small">Gender</span>
+                <span>{patient.gender}</span>
+              </div>
+              <div className="cb-profile-field">
+                <span className="text-muted small">Age</span>
+                <span>{age !== null ? `${age} years` : 'Unspecified'}</span>
+              </div>
+              <div className="cb-profile-field">
+                <span className="text-muted small">Date of Birth</span>
+                <span>{birthDate ? birthDate.toLocaleDateString() : 'Unspecified'}</span>
+              </div>
+              <div className="cb-profile-field">
+                <span className="text-muted small">Registered Since</span>
+                <span>{new Date(patient.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Emergency Contact */}
+          <Card title="Emergency Contact" className="mb-3">
+            <div className="cb-profile-field-list">
+              <div className="cb-profile-field">
+                <span className="text-muted small">Contact Person</span>
+                <span className="fw-semibold">{patient.emergencyContactName || 'None listed'}</span>
+              </div>
+              <div className="cb-profile-field">
+                <span className="text-muted small">Contact Phone</span>
+                <span>{patient.emergencyContactPhone || 'None listed'}</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Contact & Medical History */}
+        <div className="col-12 col-lg-8">
+          <Card title="Contact & Residence Information" className="mb-3">
+            <div className="row g-3">
+              <div className="col-12 col-md-6">
+                <span className="text-muted small d-block mb-1">Phone Number</span>
+                <div className="fw-semibold">
+                  <i className="bi bi-telephone me-2 text-muted"></i>
+                  {patient.phone || 'Not provided'}
+                </div>
+              </div>
+              <div className="col-12 col-md-6">
+                <span className="text-muted small d-block mb-1">Email Address</span>
+                <div className="fw-semibold">
+                  <i className="bi bi-envelope me-2 text-muted"></i>
+                  {patient.email || 'Not provided'}
+                </div>
+              </div>
+              <div className="col-12">
+                <span className="text-muted small d-block mb-1">Residential Address</span>
+                <div className="p-2 border rounded bg-light small">
+                  <i className="bi bi-geo-alt me-2 text-muted"></i>
+                  {patient.address || 'No residential address on record.'}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Medical History */}
+          <Card title="Medical Background & Allergies">
+            {patient.medicalHistory ? (
+              <div className="p-3 border rounded bg-light">
+                <p className="m-0 small" style={{ whiteSpace: 'pre-line' }}>
+                  {patient.medicalHistory}
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted m-0 py-2 small">
+                No past medical conditions, known allergies, or surgical histories documented.
               </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-6">
-          <div className="card h-full">
-            <div className="section-header">
-              <i className="fi fi-rr-document section-icon"></i>
-              <h3 className="section-title">General Information</h3>
-            </div>
-            
-            <div className="row mt-6">
-              <div className="col-6 mb-4">
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
-                  <div className="text-primary font-semibold">
-                    <i className="fi fi-rr-envelope mr-2"></i>
-                    {patient.email || "Not Provided"}
-                  </div>
-                </div>
-              </div>
-              <div className="col-6 mb-4">
-                <div className="form-group">
-                  <label className="form-label">Phone Number</label>
-                  <div className="font-semibold">
-                    <i className="fi fi-rr-phone-flip mr-2"></i>
-                    {patient.phone || "Not Provided"}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="col-12 mb-4">
-                <div className="form-group">
-                  <label className="form-label">Residential Address</label>
-                  <div className="glass-panel no-padding p-4 mt-2">
-                    <i className="fi fi-rr-map-marker-home mr-2 text-primary"></i>
-                    {patient.address || "No address on file."}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <hr style={{ border: "0", borderTop: "1px solid var(--border)", margin: "2rem 0" }} />
-
-            <div className="section-header">
-              <i className="fi fi-rr-heart-rate section-icon-secondary"></i>
-              <h3 className="section-title text-secondary">Medical History</h3>
-            </div>
-            
-            <div className="glass-panel no-padding p-4 mt-4" style={{ backgroundColor: "rgba(16, 185, 129, 0.05)", borderLeft: "4px solid var(--secondary)" }}>
-              <p style={{ lineHeight: "1.6" }}>
-                {patient.medicalHistory || "No significant medical history reported."}
-              </p>
-            </div>
-          </div>
+            )}
+          </Card>
         </div>
       </div>
     </div>

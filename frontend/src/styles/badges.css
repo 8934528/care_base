@@ -1,0 +1,33 @@
+.cb-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.cb-badge-active, .cb-badge-completed {
+  background-color: var(--cb-success-subtle);
+  color: var(--cb-success);
+  border: 1px solid var(--cb-success-border);
+}
+
+.cb-badge-waiting, .cb-badge-pending, .cb-badge-priority {
+  background-color: var(--cb-warning-subtle);
+  color: var(--cb-warning);
+  border: 1px solid var(--cb-warning-border);
+}
+
+.cb-badge-emergency, .cb-badge-cancelled, .cb-badge-deactivated, .cb-badge-suspended, .cb-badge-locked {
+  background-color: var(--cb-danger-subtle);
+  color: var(--cb-danger);
+  border: 1px solid var(--cb-danger-border);
+}
+
+.cb-badge-normal, .cb-badge-inactive, .cb-badge-info, .cb-badge-in-consultation {
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}

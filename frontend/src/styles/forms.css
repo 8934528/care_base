@@ -1,0 +1,52 @@
+.cb-form-control, .cb-form-select {
+  font-size: 0.875rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--cb-border);
+}
+
+.cb-form-control:focus, .cb-form-select:focus {
+  border-color: var(--cb-primary);
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+}
+
+.cb-search-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cb-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--cb-text-muted);
+  pointer-events: none;
+}
+
+.cb-search-input-group input {
+  padding-left: 2.25rem;
+  padding-right: 2rem;
+}
+
+.cb-search-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--cb-text-muted);
+  cursor: pointer;
+}
+
+.cb-day-toggle {
+  border: 1px solid var(--cb-border);
+  background-color: #ffffff;
+  color: var(--cb-text-main);
+  min-width: 44px;
+}
+
+.cb-day-toggle.active {
+  background-color: var(--cb-primary);
+  border-color: var(--cb-primary);
+  color: #ffffff;
+}
+

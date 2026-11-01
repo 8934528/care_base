@@ -1,25 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  ListOrdered, 
-  FileText, 
-  ClipboardList, 
-  BarChart3,
-  Bell
-} from "lucide-react";
 
-const menuItems = [
-  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard, roles: ["Admin", "Doctor", "Nurse", "Clerk"] },
-  { name: "Patients", path: "/patients", icon: Users, roles: ["Admin", "Doctor", "Nurse", "Clerk"] },
-  { name: "Appointments", path: "/appointments", icon: Calendar, roles: ["Admin", "Doctor", "Nurse", "Clerk"] },
-  { name: "Queue", path: "/queue", icon: ListOrdered, roles: ["Admin", "Nurse", "Clerk"] },
-  { name: "Medical Records", path: "/records", icon: FileText, roles: ["Admin", "Doctor"] },
-  { name: "CareBase Notes", path: "/notes", icon: ClipboardList, roles: ["Doctor", "Nurse"] },
-  { name: "Notifications", path: "/notifications", icon: Bell, roles: ["Admin", "Clerk"] },
-  { name: "Reports", path: "/reports", icon: BarChart3, roles: ["Admin"] },
+interface MenuItem {
+  name: string;
+  path: string;
+  icon: string;
+  roles: string[];
+}
+
+const menuItems: MenuItem[] = [
+  { name: "Dashboard", path: "/dashboard", icon: "bi-speedometer2", roles: ["Admin", "Manager", "Doctor", "Nurse", "Clerk"] },
+  { name: "Patients", path: "/patients", icon: "bi-people", roles: ["Admin", "Manager", "Doctor", "Nurse", "Clerk"] },
+  { name: "Appointments", path: "/appointments", icon: "bi-calendar3", roles: ["Admin", "Manager", "Doctor", "Nurse", "Clerk"] },
+  { name: "Queue", path: "/queue", icon: "bi-list-ol", roles: ["Admin", "Manager", "Doctor", "Nurse", "Clerk"] },
+  { name: "Medical Records", path: "/records", icon: "bi-journal-medical", roles: ["Admin", "Manager", "Doctor", "Nurse"] },
+  { name: "Clinical Notes", path: "/notes", icon: "bi-clipboard2-pulse", roles: ["Doctor", "Nurse"] },
+  { name: "Employees", path: "/employees", icon: "bi-person-badge", roles: ["Admin", "Manager"] },
+  { name: "Audit Logs", path: "/audit-logs", icon: "bi-shield-check", roles: ["Admin", "Manager"] },
+  { name: "Reports", path: "/reports", icon: "bi-graph-up", roles: ["Admin", "Manager", "Doctor"] },
+  { name: "Notifications", path: "/notifications", icon: "bi-bell", roles: ["Admin", "Clerk"] },
 ];
 
 export default function Sidebar() {
@@ -28,36 +27,49 @@ export default function Sidebar() {
 
   if (!user) return null;
 
-  const filteredMenu = menuItems.filter(item => 
-    item.roles.includes(user.role) || user.role === "Admin"
+  const filteredMenu = menuItems.filter((item) =>
+    user.role === "Admin" || item.roles.includes(user.role)
   );
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <img src="/logo.png" alt="CareBase Logo" className="sidebar-logo" />
-        <span>CareBase</span>
+    <aside className="cb-sidebar">
+      <div className="cb-sidebar-header d-flex align-items-center">
+        <div className="cb-sidebar-brand-icon me-2">
+          <i className="bi bi-hospital"></i>
+        </div>
+        <div className="cb-sidebar-brand-text">
+          <span className="fw-bold fs-5 tracking-tight">CareBase</span>
+          <span className="cb-brand-tag">Health HMS</span>
+        </div>
       </div>
-      <nav className="nav-links">
-        {filteredMenu.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`nav-item ${location.pathname.startsWith(item.path) ? "active" : ""}`}
-          >
-            <item.icon size={18} strokeWidth={1.5} className="nav-icon" />
-            <span>{item.name}</span>
-          </Link>
-        ))}
+
+      <nav className="cb-nav-links">
+        {filteredMenu.map((item) => {
+          const isActive = location.pathname.startsWith(item.path);
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`cb-nav-item ${isActive ? "active" : ""}`}
+            >
+              <i className={`bi ${item.icon} cb-nav-icon`} aria-hidden="true"></i>
+              <span className="cb-nav-text">{item.name}</span>
+            </Link>
+          );
+        })}
       </nav>
-      <div className="sidebar-footer">
-        <div className="user-info-label">
-          Logged in as:
-        </div>
-        <div className="user-info-name">
-          {user.fullName}
+
+      <div className="cb-sidebar-footer">
+        <div className="cb-user-summary d-flex align-items-center">
+          <div className="cb-avatar cb-avatar-sm me-2">
+            {user.fullName.charAt(0).toUpperCase()}
+          </div>
+          <div className="cb-user-text overflow-hidden">
+            <div className="cb-user-name text-truncate">{user.fullName}</div>
+            <div className="cb-user-role small text-muted text-truncate">{user.role}</div>
+          </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

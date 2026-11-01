@@ -8,7 +8,7 @@ public class DashboardService(AppDbContext context)
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<DashboardStatsDto> GetDashboard()
+    public async Task<DashboardStatsDto> GetDashboard(int currentUserId, string roleName)
     {
         var today = DateTime.UtcNow.Date;
         var tomorrow = today.AddDays(1);
@@ -17,10 +17,10 @@ public class DashboardService(AppDbContext context)
             .CountAsync(x => x.VisitDate >= today && x.VisitDate < tomorrow);
 
         var queueLoad = await _context.Queue
-            .CountAsync(x => x.Status == "Waiting" || x.Status == "InProgress");
+            .CountAsync(x => x.Status == "Waiting" || x.Status == "InProgress" || x.Status == "InConsultation");
 
         var onDutyDoctorIds = await _context.StaffAvailabilities
-            .Where(a => a.DayOfWeek == today.DayOfWeek)
+            .Where(a => a.DayOfWeek == today.DayOfWeek && a.IsAvailable)
             .Select(a => a.UserId)
             .Distinct()
             .CountAsync();
@@ -35,6 +35,14 @@ public class DashboardService(AppDbContext context)
                 x.CompletedTime.HasValue &&
                 x.CompletedTime.Value >= today &&
                 x.CompletedTime.Value < tomorrow);
+
+        var totalPatients = await _context.Patients.CountAsync();
+        var totalEmployees = await _context.Users.CountAsync();
+        var activeEmployees = await _context.Users.CountAsync(u => u.IsActive);
+        var todayAppointments = await _context.Appointments.CountAsync(a => a.AppointmentDate.Date == today && a.Status != "Cancelled");
+
+        var pendingFollowUps = await _context.MedicalRecords
+            .CountAsync(r => r.FollowUpDate.HasValue && r.FollowUpDate.Value >= today && r.FollowUpDate.Value <= today.AddDays(7));
 
         var diseaseTrends = await _context.MedicalRecords
             .Where(x => !string.IsNullOrEmpty(x.Assessment))
@@ -52,7 +60,7 @@ public class DashboardService(AppDbContext context)
             .GroupBy(x => x.Gender)
             .Select(g => new GenderStatsDto
             {
-                Gender = g.Key ?? "Unknown",
+                Gender = g.Key,
                 Total = g.Count()
             })
             .ToListAsync();
@@ -66,12 +74,155 @@ public class DashboardService(AppDbContext context)
             })
             .ToListAsync();
 
+        // Role-specific lists
+        var roleAppointments = new List<AppointmentSummaryDto>();
+        var roleQueue = new List<QueueSummaryDto>();
+        var securityEvents = new List<AuditLogItemDto>();
+
+        if (roleName == "Doctor")
+        {
+            var appts = await _context.Appointments
+                .Where(a => a.DoctorId == currentUserId && a.AppointmentDate.Date == today)
+                .OrderBy(a => a.StartTime)
+                .Take(10)
+                .ToListAsync();
+
+            var patientIds = appts.Select(a => a.PatientId).Distinct().ToList();
+            var patients = await _context.Patients.Where(p => patientIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => $"{p.FirstName} {p.LastName}");
+
+            roleAppointments = appts.Select(a => new AppointmentSummaryDto
+            {
+                Id = a.Id,
+                AppointmentRef = a.AppointmentRef,
+                PatientId = a.PatientId,
+                PatientName = patients.GetValueOrDefault(a.PatientId, $"Patient #{a.PatientId}"),
+                StartTime = a.StartTime,
+                EndTime = a.EndTime,
+                AppointmentType = a.AppointmentType,
+                Priority = a.Priority,
+                Status = a.Status,
+                Reason = a.Reason
+            }).ToList();
+
+            var qItems = await _context.Queue
+                .Where(q => (q.Status == "Waiting" || q.Status == "InProgress") && q.CheckInTime >= today)
+                .OrderByDescending(q => q.Priority == "Emergency")
+                .ThenBy(q => q.CheckInTime)
+                .Take(10)
+                .ToListAsync();
+
+            roleQueue = qItems.Select(q => new QueueSummaryDto
+            {
+                Id = q.Id,
+                QueueNumber = q.QueueNumber,
+                PatientId = q.PatientId,
+                PatientRef = q.PatientRef,
+                Priority = q.Priority,
+                Status = q.Status,
+                AssignedTo = q.AssignedTo,
+                CheckInTime = q.CheckInTime
+            }).ToList();
+        }
+        else if (roleName == "Nurse")
+        {
+            var qItems = await _context.Queue
+                .Where(q => (q.Status == "Waiting" || q.Status == "InProgress") && q.CheckInTime >= today)
+                .OrderByDescending(q => q.Priority == "Emergency")
+                .ThenBy(q => q.CheckInTime)
+                .Take(15)
+                .ToListAsync();
+
+            roleQueue = qItems.Select(q => new QueueSummaryDto
+            {
+                Id = q.Id,
+                QueueNumber = q.QueueNumber,
+                PatientId = q.PatientId,
+                PatientRef = q.PatientRef,
+                Priority = q.Priority,
+                Status = q.Status,
+                AssignedTo = q.AssignedTo,
+                CheckInTime = q.CheckInTime
+            }).ToList();
+        }
+        else if (roleName == "Clerk")
+        {
+            var appts = await _context.Appointments
+                .Where(a => a.AppointmentDate.Date == today)
+                .OrderBy(a => a.StartTime)
+                .Take(10)
+                .ToListAsync();
+
+            var patientIds = appts.Select(a => a.PatientId).Distinct().ToList();
+            var patients = await _context.Patients.Where(p => patientIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => $"{p.FirstName} {p.LastName}");
+
+            roleAppointments = appts.Select(a => new AppointmentSummaryDto
+            {
+                Id = a.Id,
+                AppointmentRef = a.AppointmentRef,
+                PatientId = a.PatientId,
+                PatientName = patients.GetValueOrDefault(a.PatientId, $"Patient #{a.PatientId}"),
+                StartTime = a.StartTime,
+                EndTime = a.EndTime,
+                AppointmentType = a.AppointmentType,
+                Priority = a.Priority,
+                Status = a.Status,
+                Reason = a.Reason
+            }).ToList();
+
+            var qItems = await _context.Queue
+                .Where(q => q.Status == "Waiting" && q.CheckInTime >= today)
+                .OrderBy(q => q.CheckInTime)
+                .Take(10)
+                .ToListAsync();
+
+            roleQueue = qItems.Select(q => new QueueSummaryDto
+            {
+                Id = q.Id,
+                QueueNumber = q.QueueNumber,
+                PatientId = q.PatientId,
+                PatientRef = q.PatientRef,
+                Priority = q.Priority,
+                Status = q.Status,
+                AssignedTo = q.AssignedTo,
+                CheckInTime = q.CheckInTime
+            }).ToList();
+        }
+        else // Admin or Manager
+        {
+            var logs = await _context.AuditLogs
+                .OrderByDescending(l => l.Timestamp)
+                .Take(8)
+                .Select(l => new AuditLogItemDto
+                {
+                    Id = l.Id,
+                    UserName = l.UserName,
+                    UserRole = l.UserRole,
+                    Action = l.Action,
+                    Module = l.Module,
+                    ResourceId = l.ResourceId,
+                    Details = l.Details,
+                    Result = l.Result,
+                    Timestamp = l.Timestamp
+                })
+                .ToListAsync();
+
+            securityEvents = logs;
+        }
+
         return new DashboardStatsDto
         {
             DailyVisits = dailyVisits,
             QueueLoad = queueLoad,
             ActiveDoctors = activeDoctors,
             CompletedConsultations = completedConsultations,
+            TotalPatients = totalPatients,
+            TotalEmployees = totalEmployees,
+            ActiveEmployees = activeEmployees,
+            TodayAppointments = todayAppointments,
+            PendingFollowUps = pendingFollowUps,
+            RoleAppointments = roleAppointments,
+            RoleQueueItems = roleQueue,
+            RecentSecurityEvents = securityEvents,
             DiseaseTrends = diseaseTrends,
             GenderStats = genderStats,
             AppointmentStats = appointmentStats
@@ -80,9 +231,40 @@ public class DashboardService(AppDbContext context)
 
     public async Task<ReportsDto> GetReports()
     {
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-        var dashboard = await GetDashboard();
+        var totalPatients = await _context.Patients.CountAsync();
+        var todayAppointments = await _context.Appointments.CountAsync(a => a.AppointmentDate.Date == DateTime.UtcNow.Date);
+        var currentQueue = await _context.Queue.CountAsync(q => q.Status == "Waiting");
+        var completedToday = await _context.Queue.CountAsync(q => q.Status == "Completed" && q.CompletedTime.HasValue && q.CompletedTime.Value.Date == DateTime.UtcNow.Date);
+
+        var diseaseTrends = await _context.MedicalRecords
+            .Where(x => !string.IsNullOrEmpty(x.Assessment))
+            .GroupBy(x => x.Assessment)
+            .Select(g => new DiseaseTrendDto
+            {
+                Disease = g.Key,
+                TotalCases = g.Count()
+            })
+            .OrderByDescending(x => x.TotalCases)
+            .Take(10)
+            .ToListAsync();
+
+        var appointmentStats = await _context.Appointments
+            .GroupBy(x => x.Status)
+            .Select(g => new AppointmentStatsDto
+            {
+                Status = g.Key,
+                Total = g.Count()
+            })
+            .ToListAsync();
+
+        var genderStats = await _context.Patients
+            .GroupBy(x => x.Gender)
+            .Select(g => new GenderStatsDto
+            {
+                Gender = g.Key,
+                Total = g.Count()
+            })
+            .ToListAsync();
 
         var monthlyVisits = await _context.MedicalRecords
             .GroupBy(x => new { x.VisitDate.Year, x.VisitDate.Month })
@@ -97,15 +279,13 @@ public class DashboardService(AppDbContext context)
 
         return new ReportsDto
         {
-            TotalPatients = await _context.Patients.CountAsync(),
-            TodayAppointments = await _context.Appointments
-                .CountAsync(a => a.AppointmentDate >= today && a.AppointmentDate < tomorrow),
-            CurrentQueue = await _context.Queue
-                .CountAsync(q => q.Status == "Waiting" || q.Status == "InProgress"),
-            CompletedToday = dashboard.CompletedConsultations,
-            DiseaseTrends = dashboard.DiseaseTrends,
-            GenderStats = dashboard.GenderStats,
-            AppointmentStats = dashboard.AppointmentStats,
+            TotalPatients = totalPatients,
+            TodayAppointments = todayAppointments,
+            CurrentQueue = currentQueue,
+            CompletedToday = completedToday,
+            DiseaseTrends = diseaseTrends,
+            GenderStats = genderStats,
+            AppointmentStats = appointmentStats,
             MonthlyVisits = monthlyVisits
         };
     }

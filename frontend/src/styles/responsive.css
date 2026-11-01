@@ -1,0 +1,21 @@
+@media (max-width: 768px) {
+  .cb-sidebar {
+    width: 60px;
+  }
+  .cb-sidebar-brand-text, .cb-nav-text, .cb-sidebar-footer {
+    display: none;
+  }
+  .cb-sidebar-header {
+    justify-content: center;
+    padding: 0;
+  }
+  .cb-nav-item {
+    justify-content: center;
+    padding: 0.75rem 0;
+  }
+  .cb-main {
+    margin-left: 60px;
+    width: calc(100vw - 60px);
+  }
+}
+

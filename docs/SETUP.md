@@ -1,72 +1,105 @@
 # Setup Guide
 
-After cloning the project, in the root dir, create a `.env` file and perform a copy and paste the following in the `.env` file:
+Follow these steps to set up and run CareBase on your local machine.
 
-```env
-#POSTGRESQL
-DB_PASSWORD=[YOUR_POSTGRESQL_PASSWORD]
-JWT_KEY=[YOUR_JWT_KEY]
-DB_HOST=localhost
-DB_NAME=carebase
-DB_USER=postgres
+## Prerequisites
 
-#TWILIO MESSAGING
-TWILIO_ACCOUNT_SID=[YOUR_TWILIO_ACCOUNT_SID]
-TWILIO_AUTH_TOKEN=[YOUR_TWILIO_AUTH_TOKEN]
-TWILIO_PHONE_NUMBER=[YOUR_TWILIO_PHONE_NUMBER]
-TWILIO_WHATSAPP_NUMBER=[YOUR_TWILIO_WHATSAPP_NUMBER]
+- **.NET 8 SDK**: [Download .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **Node.js 18+ & npm**: [Download Node.js](https://nodejs.org/)
+- **PostgreSQL 15+**: [Download PostgreSQL](https://www.postgresql.org/download/)
+- **Make** (optional, for running convenience commands)
+
+---
+
+## 1. Database Setup
+
+CareBase uses PostgreSQL. The database name must always be `carebase`.
+
+1. Ensure your PostgreSQL server is installed and running.
+2. Connect to your PostgreSQL instance using `psql`, pgAdmin, or your preferred SQL tool.
+3. Manually create the `carebase` database:
+
+```sql
+CREATE DATABASE carebase;
 ```
 
-Then run the backend and the frontend using differnt terminal
+> **Note:** The application will not automatically create PostgreSQL server instances or database users. When the application starts, it connects to PostgreSQL, checks that the `carebase` database exists, creates required tables using EF Core migrations, and seeds essential roles and the default administrator. It does not seed fake or demo patients.
 
-## **Terminal 1**
+---
 
-```text
+## 2. Environment Configuration
+
+Create a `.env` file in the root directory by copying `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Configure your database and system settings in `.env`:
+
+```env
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=carebase
+DB_USER=postgres
+DB_PASSWORD=your_postgres_password
+
+# Authentication
+JWT_KEY=your_secure_random_key_min_32_chars
+JWT_ISSUER=CareBaseAPI
+JWT_AUDIENCE=CareBaseClient
+
+# Twilio SMS / WhatsApp (Optional)
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
+TWILIO_WHATSAPP_NUMBER=
+```
+
+---
+
+## 3. Running the Application
+
+### Option A: Using Two Terminals
+
+**Terminal 1 — Backend API:**
+```bash
 cd backend/CareBase.API
-dotnet clean
 dotnet restore
 dotnet run
 ```
+The backend API runs at `http://localhost:5076` (Swagger documentation at `http://localhost:5076/swagger`).
 
-## **Terminal 2**
-
-```text
+**Terminal 2 — Frontend UI:**
+```bash
 cd frontend
 npm install
 npm run dev
 ```
+The frontend application runs at `http://localhost:5173`.
 
-If you don't want to use multiple terminals, you can use the included `Makefile`. Simply run the help command to see all available commands:
+### Option B: Using the Makefile
+
+If you have `make` installed:
 
 ```bash
+# Display help and available commands
 make help
+
+# Run both backend and frontend together
+make run
 ```
 
-Please make sure that when using the Makefile, you have `make` downloaded and installed:
-
-The specific download depends on your operating system:
-
-### 1. Windows
-
-Windows does not include a Make utility by default. You have several options:
-
-- **Chocolatey**: If you use this package manager, run `choco install make` in a terminal with Administrator privileges.
-- **MinGW-w64**: This provides `mingw32-make.exe`. You can download it through the MinGW-w64 installer or MSYS2.
-- **GnuWin32**: You can download a standalone version of make for Windows from the GnuWin32 project.
-
-### 2. macOS
-
-- **Xcode Command Line Tools**: Make is included in this package. To install it, open your terminal and run: `xcode-select --install`
-- Alternatively, you can install it via Homebrew using `brew install make`.
-
-### 3. Linux
-
-- **Pre-installed**: Most Linux distributions come with make already installed.
-- **Manual Install**: If it’s missing, use your package manager (e.g., `sudo apt install make` on Ubuntu/Debian or `sudo dnf install make` on Fedora/RHEL).
-
 ---
-**Additional Recommended Tools:**
-While not strictly required for the Makefile itself, you will likely need:
 
-- **Text Editor/IDE**: To create and edit your Makefile.
-- **VS Code**: You can download the Makefile Tools extension to get syntax highlighting and build support within the editor.
+## 4. Initial System Sign-In
+
+On first startup, the database is automatically initialized with the default administrator account:
+
+- **Email**: `admin@carebase.com`
+- **Password**: `Admin@123`
+
+The administrator can then log in, review facility departments, and provision staff accounts (Managers, Doctors, Nurses, and Clerks).
+
+Patients must only be registered through the patient registration screen by authorised staff members.

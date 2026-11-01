@@ -5,8 +5,10 @@ public class MedicalRecord
     public int Id { get; set; }
 
     public int PatientId { get; set; }
+    public Patient? Patient { get; set; }
 
     public int DoctorId { get; set; }
+    public User? Doctor { get; set; }
 
     public int? QueueId { get; set; }
 
@@ -34,7 +36,12 @@ public class MedicalRecord
 
     public DateTime? FollowUpDate { get; set; }
 
-    public string Status { get; set; } = "Open";
+    public string Status { get; set; } = "Finalised";
+
+    public string? AmendedReason { get; set; }
+    public DateTime? AmendedAt { get; set; }
+    public int? AmendedByDoctorId { get; set; }
+    public string? AmendmentHistory { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

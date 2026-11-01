@@ -1,11 +1,12 @@
-using CareBase.Core.Services;
-using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using CareBase.Core.Services;
 
 namespace CareBase.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/dashboard")]
 [Authorize]
 public class DashboardController(DashboardService service) : ControllerBase
 {
@@ -14,7 +15,11 @@ public class DashboardController(DashboardService service) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var stats = await _service.GetDashboard();
-        return Ok(stats);
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0";
+        int.TryParse(idStr, out var currentUserId);
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? "Admin";
+
+        var result = await _service.GetDashboard(currentUserId, role);
+        return Ok(result);
     }
 }

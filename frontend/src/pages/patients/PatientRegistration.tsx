@@ -1,9 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { registerPatient } from "../../services/patientService";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
+import { Card, Button, PageHeader } from "../../components/common";
 
 export default function PatientRegistration() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -19,138 +23,220 @@ export default function PatientRegistration() {
   });
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.firstName || !form.lastName || !form.idNumber || !form.phone) {
+      showToast("Please fill in all mandatory fields.", "warning");
+      return;
+    }
+
     setLoading(true);
 
-    const payload: any = { ...form };
-    if (!payload.dateOfBirth) {
-      delete payload.dateOfBirth;
-    }
+    const payload = {
+      ...form,
+      dateOfBirth: form.dateOfBirth ? form.dateOfBirth : undefined
+    };
 
     try {
       const res = await registerPatient(payload);
-      alert(`Patient Registered: ${res.patientRef}`);
-      navigate("/patients");
-    } catch (err: any) {
-      console.error(err);
-      const errorMsg = err.response?.data?.message || err.response?.data?.title || "Registration failed";
-      alert(errorMsg);
+      showToast(`Patient successfully registered (${res.patientRef}).`, "success");
+      navigate(`/patients/profile/${res.patientRef}`);
+    } catch (err: unknown) {
+      const errObj = err as { response?: { data?: { message?: string } } };
+      showToast(errObj.response?.data?.message || "Registration failed.", "danger");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <h1><i className="fi fi-rr-user-add"></i> Patient Registration</h1>
-      </div>
+    <div className="cb-page container-fluid px-0">
+      <PageHeader
+        title="Patient Registration"
+        subtitle="Intake and registration for new healthcare facility patients"
+        actions={
+          <Button variant="outline" icon="bi-arrow-left" onClick={() => navigate("/patients")}>
+            Back
+          </Button>
+        }
+      />
 
-      <div className="glass-panel">
-        <form onSubmit={handleSubmit}>
-          <div className="row">
-            <div className="col-6">
-              <div className="section-header">
-                <i className="fi fi-rr-user section-icon"></i>
-                <h3 className="section-title">Personal Information</h3>
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="firstName">First Name</label>
-                <input id="firstName" name="firstName" placeholder="First Name" className="form-input" onChange={handleChange} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="lastName">Last Name</label>
-                <input id="lastName" name="lastName" placeholder="Last Name" className="form-input" onChange={handleChange} required />
-              </div>
-              <div className="row">
-                <div className="col-6 no-padding-left">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="idNumber">ID Number</label>
-                    <input id="idNumber" name="idNumber" placeholder="ID Number" className="form-input" onChange={handleChange} required />
-                  </div>
+      <form onSubmit={handleSubmit}>
+        <div className="row g-3">
+          <div className="col-12 col-lg-6">
+            <Card title="Personal Demographics" className="mb-3">
+              <div className="row g-3">
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="firstName">First Name *</label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    className="form-control cb-form-control"
+                    placeholder="e.g. Sipho"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
-                <div className="col-6 no-padding-right">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="gender">Gender</label>
-                    <select id="gender" name="gender" className="form-input" onChange={handleChange} aria-label="Select gender">
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="lastName">Last Name *</label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    className="form-control cb-form-control"
+                    placeholder="e.g. Khumalo"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="idNumber">National ID / Passport *</label>
+                  <input
+                    id="idNumber"
+                    name="idNumber"
+                    type="text"
+                    className="form-control cb-form-control"
+                    placeholder="13-digit National ID or passport"
+                    value={form.idNumber}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="gender">Gender *</label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    className="form-select cb-form-select"
+                    value={form.gender}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="col-12">
+                  <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
+                  <input
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    type="date"
+                    className="form-control cb-form-control"
+                    value={form.dateOfBirth}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
-                <input id="dateOfBirth" name="dateOfBirth" type="date" className="form-input" onChange={handleChange} aria-label="Date of birth" />
-              </div>
-            </div>
+            </Card>
 
-            <div className="col-6">
-              <div className="section-header">
-                <i className="fi fi-rr-phone-call section-icon"></i>
-                <h3 className="section-title">Contact & Emergency</h3>
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="phone">Phone</label>
-                <input id="phone" name="phone" placeholder="Phone" className="form-input" onChange={handleChange} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="email">Email</label>
-                <input id="email" name="email" placeholder="Email" className="form-input" onChange={handleChange} />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="address">Address</label>
-                <div className="input-with-icon">
-                  <i className="fi fi-rr-marker input-icon-right"></i>
-                  <textarea id="address" name="address" placeholder="Physical Address" className="form-input" rows={2} onChange={handleChange} />
+            <Card title="Emergency Contact Details">
+              <div className="row g-3">
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="emergencyContactName">Contact Full Name</label>
+                  <input
+                    id="emergencyContactName"
+                    name="emergencyContactName"
+                    type="text"
+                    className="form-control cb-form-control"
+                    placeholder="Next of kin name"
+                    value={form.emergencyContactName}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="emergencyContactPhone">Contact Phone</label>
+                  <input
+                    id="emergencyContactPhone"
+                    name="emergencyContactPhone"
+                    type="tel"
+                    className="form-control cb-form-control"
+                    placeholder="+27 82 000 0000"
+                    value={form.emergencyContactPhone}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
-              <div className="row">
-                <div className="col-6 no-padding-left">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="emergencyContactName">Emergency Name</label>
-                    <input id="emergencyContactName" name="emergencyContactName" placeholder="Name" className="form-input" onChange={handleChange} />
-                  </div>
-                </div>
-                <div className="col-6 no-padding-right">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="emergencyContactPhone">Emergency Phone</label>
-                    <input id="emergencyContactPhone" name="emergencyContactPhone" placeholder="Phone" className="form-input" onChange={handleChange} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            </Card>
           </div>
 
-          <div className="form-group mt-4">
-            <div className="section-header-compact">
-              <i className="fi fi-rr-interrogation section-icon-warning"></i>
-              <label className="form-label mb-0" htmlFor="medicalHistory">Medical History (Allergies, Chronic Conditions, etc.)</label>
-            </div>
-            <textarea
-              id="medicalHistory"
-              name="medicalHistory"
-              placeholder="Enter medical history..."
-              className="form-input"
-              rows={4}
-              onChange={handleChange}
-            />
-          </div>
+          <div className="col-12 col-lg-6">
+            <Card title="Contact & Residence Information" className="mb-3">
+              <div className="row g-3">
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="phone">Mobile Phone Number *</label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    className="form-control cb-form-control"
+                    placeholder="+27 82 000 0000"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="col-12 col-sm-6">
+                  <label className="form-label" htmlFor="email">Email Address</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    className="form-control cb-form-control"
+                    placeholder="patient@example.com"
+                    value={form.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="col-12">
+                  <label className="form-label" htmlFor="address">Residential Address</label>
+                  <input
+                    id="address"
+                    name="address"
+                    type="text"
+                    className="form-control cb-form-control"
+                    placeholder="Street, suburb, city, postal code"
+                    value={form.address}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </Card>
 
-          <div className="form-actions-end">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              <i className="fi fi-rr-disk"></i>
-              <span>{loading ? "Registering..." : "Register Patient"}</span>
-            </button>
+            <Card title="Medical Background & Known Conditions" className="mb-3">
+              <label className="form-label" htmlFor="medicalHistory">Past Conditions, Allergies, or Chronic Medications</label>
+              <textarea
+                id="medicalHistory"
+                name="medicalHistory"
+                rows={4}
+                className="form-control cb-form-control"
+                placeholder="Document any known allergies, chronic illnesses (e.g., hypertension, diabetes), or previous surgeries..."
+                value={form.medicalHistory}
+                onChange={handleChange}
+              />
+            </Card>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="ghost" type="button" onClick={() => navigate("/patients")}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" loading={loading} icon="bi-check-lg">
+                Complete Registration
+              </Button>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

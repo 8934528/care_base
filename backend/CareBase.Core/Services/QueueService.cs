@@ -7,10 +7,11 @@ using CareBase.Core.Hubs;
 
 namespace CareBase.Core.Services;
 
-public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub> hubContext)
+public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub> hubContext, AuditService audit)
 {
     private readonly AppDbContext _context = context;
     private readonly IHubContext<QueueHub, IQueueHub> _hubContext = hubContext;
+    private readonly AuditService _audit = audit;
 
     private static string GenerateQueueNumber()
     {
@@ -23,7 +24,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         await _hubContext.Clients.All.ReceiveQueueUpdate(queue);
     }
 
-    public async Task<QueueItem> AddToQueue(AddToQueueDto dto)
+    public async Task<QueueItem> AddToQueue(AddToQueueDto dto, int currentUserId, string currentUserName, string currentUserRole)
     {
         var today = DateTime.UtcNow.Date;
         var tomorrow = today.AddDays(1);
@@ -31,11 +32,13 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         var alreadyQueuedToday = await _context.Queue.AnyAsync(q =>
             q.PatientRef == dto.PatientRef &&
             q.CheckInTime >= today &&
-            q.CheckInTime < tomorrow);
+            q.CheckInTime < tomorrow &&
+            q.Status != "Cancelled" &&
+            q.Status != "Completed");
 
         if (alreadyQueuedToday)
             throw new InvalidOperationException(
-                $"Patient {dto.PatientRef} is already in today's queue and cannot be added again.");
+                $"Patient {dto.PatientRef} is already active in today's queue.");
 
         var assignedClinician = await PickClinicianAsync(today, tomorrow);
 
@@ -53,6 +56,16 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         _context.Queue.Add(item);
         await _context.SaveChangesAsync();
 
+        await _audit.LogAsync(
+            "QueueCheckIn",
+            "Queue",
+            $"Patient {dto.PatientRef} added to queue ({item.QueueNumber}, Priority: {item.Priority}, Assigned: {item.AssignedTo})",
+            resourceId: item.Id.ToString(),
+            userId: currentUserId,
+            userName: currentUserName,
+            userRole: currentUserRole
+        );
+
         await BroadcastQueueUpdate();
 
         return item;
@@ -69,11 +82,10 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             .ToListAsync();
 
         if (activeStaff.Count == 0)
-            throw new InvalidOperationException(
-                "No active doctors or nurses are in the system. Please add clinical staff before queueing patients.");
+            return "General Clinic";
 
         var doctorsOnDutyToday = await _context.StaffAvailabilities
-            .Where(a => a.DayOfWeek == todayDayOfWeek)
+            .Where(a => a.DayOfWeek == todayDayOfWeek && a.IsAvailable)
             .Select(a => a.UserId)
             .Distinct()
             .ToListAsync();
@@ -86,17 +98,15 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             .Where(u => u.Role.RoleName == "Nurse")
             .ToList();
 
-        // Doctors only when scheduled today; nurses always cover the clinic
         var assignmentPool = availableDoctors.Concat(availableNurses).ToList();
 
         if (assignmentPool.Count == 0)
-            throw new InvalidOperationException(
-                "No nurses or on-duty doctors are available today. Add nurses or schedule a doctor for this day.");
+            assignmentPool = activeStaff;
 
         var activeLoads = await _context.Queue
             .Where(q => q.CheckInTime >= today &&
                         q.CheckInTime < tomorrow &&
-                        (q.Status == "Waiting" || q.Status == "InProgress"))
+                        (q.Status == "Waiting" || q.Status == "InProgress" || q.Status == "InConsultation"))
             .GroupBy(q => q.AssignedTo)
             .Select(g => new { AssignedTo = g.Key, Count = g.Count() })
             .ToListAsync();
@@ -121,7 +131,7 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
             .ToListAsync();
     }
 
-    public async Task<QueueItem?> CallNext()
+    public async Task<QueueItem?> CallNext(int currentUserId, string currentUserName, string currentUserRole)
     {
         var next = await _context.Queue
             .Where(q => q.Status == "Waiting")
@@ -138,12 +148,22 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
 
         await _context.SaveChangesAsync();
 
+        await _audit.LogAsync(
+            "QueueCalled",
+            "Queue",
+            $"Called next patient in queue: {next.QueueNumber} ({next.PatientRef})",
+            resourceId: next.Id.ToString(),
+            userId: currentUserId,
+            userName: currentUserName,
+            userRole: currentUserRole
+        );
+
         await BroadcastQueueUpdate();
 
         return next;
     }
 
-    public async Task CompleteQueue(int queueId)
+    public async Task CompleteQueue(int queueId, int currentUserId, string currentUserName, string currentUserRole)
     {
         var item = await _context.Queue.FindAsync(queueId);
 
@@ -154,11 +174,21 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
 
             await _context.SaveChangesAsync();
 
+            await _audit.LogAsync(
+                "QueueCompleted",
+                "Queue",
+                $"Completed consultation for {item.QueueNumber} ({item.PatientRef})",
+                resourceId: item.Id.ToString(),
+                userId: currentUserId,
+                userName: currentUserName,
+                userRole: currentUserRole
+            );
+
             await BroadcastQueueUpdate();
         }
     }
 
-    public async Task SkipQueue(int queueId)
+    public async Task SkipQueue(int queueId, int currentUserId, string currentUserName, string currentUserRole)
     {
         var item = await _context.Queue.FindAsync(queueId);
 
@@ -166,6 +196,39 @@ public class QueueService(AppDbContext context, IHubContext<QueueHub, IQueueHub>
         {
             item.Status = "Skipped";
             await _context.SaveChangesAsync();
+
+            await _audit.LogAsync(
+                "QueueSkipped",
+                "Queue",
+                $"Skipped queue item {item.QueueNumber} ({item.PatientRef})",
+                resourceId: item.Id.ToString(),
+                userId: currentUserId,
+                userName: currentUserName,
+                userRole: currentUserRole
+            );
+
+            await BroadcastQueueUpdate();
+        }
+    }
+
+    public async Task CancelQueue(int queueId, int currentUserId, string currentUserName, string currentUserRole)
+    {
+        var item = await _context.Queue.FindAsync(queueId);
+
+        if (item != null)
+        {
+            item.Status = "Cancelled";
+            await _context.SaveChangesAsync();
+
+            await _audit.LogAsync(
+                "QueueCancelled",
+                "Queue",
+                $"Cancelled queue item {item.QueueNumber} ({item.PatientRef})",
+                resourceId: item.Id.ToString(),
+                userId: currentUserId,
+                userName: currentUserName,
+                userRole: currentUserRole
+            );
 
             await BroadcastQueueUpdate();
         }

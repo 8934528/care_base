@@ -4,8 +4,9 @@ import {
   ResponsiveContainer, CartesianGrid
 } from "recharts";
 import { getReports, type ReportsData } from "../../services/reportsService";
+import { Card, PageHeader, LoadingSpinner, EmptyState } from "../../components/common";
 
-const COLORS = ['var(--primary)', 'var(--secondary)', 'var(--warning)', 'var(--error)', '#8884d8'];
+const COLORS = ['#0f766e', '#0369a1', '#b45309', '#b91c1c', '#64748b'];
 
 export default function Reports() {
   const [data, setData] = useState<ReportsData | null>(null);
@@ -25,132 +26,144 @@ export default function Reports() {
     load();
   }, []);
 
-  if (loading) {
-    return <div className="animate-fade-in text-center p-12">Loading reports...</div>;
-  }
-
+  if (loading) return <LoadingSpinner message="Generating operational reports..." />;
   if (!data) {
-    return <div className="animate-fade-in text-center p-12 text-secondary">Failed to load report data.</div>;
+    return (
+      <EmptyState
+        icon="bi-graph-down"
+        title="Failed to load reports"
+        message="Unable to compile healthcare facility analytics."
+      />
+    );
   }
 
   return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <h1><i className="fi fi-rr-document-signed"></i> CareBase Reports</h1>
+    <div className="cb-page container-fluid px-0">
+      <PageHeader
+        title="Facility Operations & Analytics Reports"
+        subtitle="Operational metrics, patient volumes, diagnostic trends, and appointment statistics"
+      />
+
+      <div className="row g-3 mb-4">
+        <div className="col-12 col-sm-6 col-xl-3">
+          <Card className="cb-stat-card">
+            <span className="text-muted small">Total Patient Base</span>
+            <h3 className="m-0 mt-1">{data.totalPatients}</h3>
+            <span className="small text-muted">Active healthcare files</span>
+          </Card>
+        </div>
+        <div className="col-12 col-sm-6 col-xl-3">
+          <Card className="cb-stat-card">
+            <span className="text-muted small">Today's Scheduled Appointments</span>
+            <h3 className="m-0 mt-1 text-primary">{data.todayAppointments}</h3>
+            <span className="small text-muted">Daily bookings</span>
+          </Card>
+        </div>
+        <div className="col-12 col-sm-6 col-xl-3">
+          <Card className="cb-stat-card">
+            <span className="text-muted small">Current Waiting Queue</span>
+            <h3 className="m-0 mt-1 text-warning">{data.currentQueue}</h3>
+            <span className="small text-muted">Awaiting consultation</span>
+          </Card>
+        </div>
+        <div className="col-12 col-sm-6 col-xl-3">
+          <Card className="cb-stat-card">
+            <span className="text-muted small">Completed Consultations Today</span>
+            <h3 className="m-0 mt-1 text-success">{data.completedToday || 0}</h3>
+            <span className="small text-muted">Facility throughput</span>
+          </Card>
+        </div>
       </div>
 
-      <div className="row metrics-row mt-8">
-        <div className="col-3">
-          <div className="card stat-card">
-            <span className="stat-title">Total Patients</span>
-            <h2 className="stat-summary-value">{data.totalPatients}</h2>
-          </div>
-        </div>
-        <div className="col-3">
-          <div className="card stat-card">
-            <span className="stat-title">Today's Appointments</span>
-            <h2 className="stat-summary-value">{data.todayAppointments}</h2>
-          </div>
-        </div>
-        <div className="col-3">
-          <div className="card stat-card">
-            <span className="stat-title">Queue (Active)</span>
-            <h2 className="stat-summary-value">{data.currentQueue}</h2>
-          </div>
-        </div>
-        <div className="col-3">
-          <div className="card stat-card">
-            <span className="stat-title">Completed Today</span>
-            <h2 className="stat-summary-value">{data.completedToday}</h2>
-          </div>
-        </div>
-      </div>
-
-      <div className="row mt-8">
-        <div className="col-6">
-          <div className="card">
-            <div className="section-header">
-              <i className="fi fi-rr-stats section-icon"></i>
-              <h3 className="section-title">Monthly Visit Statistics</h3>
-            </div>
-            <div className="chart-container h-200">
-              {data.monthlyVisits.length === 0 ? (
-                <div className="empty-state p-12">
-                  <p className="text-secondary">No visit records yet.</p>
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.monthlyVisits}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                    <XAxis dataKey="month" stroke="var(--text-secondary)" fontSize={11} />
-                    <YAxis stroke="var(--text-secondary)" fontSize={11} />
-                    <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)' }} />
-                    <Bar dataKey="totalVisits" fill="var(--primary)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="col-6">
-          <div className="card">
-            <div className="section-header">
-              <i className="fi fi-rr-users section-icon"></i>
-              <h3 className="section-title">Patient Demographics</h3>
-            </div>
-            <div className="chart-container h-200">
-              {data.genderStats.length === 0 ? (
-                <div className="empty-state p-12">
-                  <p className="text-secondary">No patient data yet.</p>
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
+      <div className="row g-3 mb-4">
+        <div className="col-12 col-lg-6">
+          <Card title="Appointment Status Breakdown">
+            {data.appointmentStats && data.appointmentStats.length > 0 ? (
+              <div style={{ width: '100%', height: 260 }}>
+                <ResponsiveContainer>
                   <PieChart>
-                    <Pie data={data.genderStats} dataKey="total" nameKey="gender" cx="50%" cy="50%" outerRadius={80}>
-                      {data.genderStats.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    <Pie
+                      data={data.appointmentStats}
+                      dataKey="total"
+                      nameKey="status"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={85}
+                    >
+                      {data.appointmentStats.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)' }} />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-              )}
-            </div>
-          </div>
+              </div>
+            ) : (
+              <p className="text-muted m-0 py-3">No status distribution records available.</p>
+            )}
+          </Card>
+        </div>
+
+        <div className="col-12 col-lg-6">
+          <Card title="Patient Demographics by Gender">
+            {data.genderStats && data.genderStats.length > 0 ? (
+              <div style={{ width: '100%', height: 260 }}>
+                <ResponsiveContainer>
+                  <BarChart data={data.genderStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="gender" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="total" fill="#0f766e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-muted m-0 py-3">No demographic data recorded.</p>
+            )}
+          </Card>
         </div>
       </div>
 
-      <div className="row mt-8">
-        <div className="col-12">
-          <div className="glass-panel">
-            <div className="section-header">
-              <i className="fi fi-rr-clipboards section-icon"></i>
-              <h3 className="section-title">Top Diagnoses & Appointment Status</h3>
-            </div>
-            <div className="row">
-              <div className="col-6">
-                {data.diseaseTrends.length === 0 ? (
-                  <p className="text-secondary p-4">No diagnosis data from medical records yet.</p>
-                ) : (
-                  <ul className="policy-list-compact">
-                    {data.diseaseTrends.map((d, i) => (
-                      <li key={i}>{d.disease}: <strong>{d.totalCases}</strong> cases</li>
-                    ))}
-                  </ul>
-                )}
+      <div className="row g-3">
+        <div className="col-12 col-lg-6">
+          <Card title="Primary Diagnoses Treated (Top Conditions)">
+            {data.diseaseTrends && data.diseaseTrends.length > 0 ? (
+              <div style={{ width: '100%', height: 260 }}>
+                <ResponsiveContainer>
+                  <BarChart data={data.diseaseTrends} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="disease" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="totalCases" fill="#0369a1" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <div className="col-6">
-                <div className="stats-grid">
-                  {data.appointmentStats.map((s, i) => (
-                    <div key={i} className="card stat-summary-card">
-                      <span className="stat-summary-label">{s.status}</span>
-                      <h2 className="stat-summary-value">{s.total}</h2>
-                    </div>
-                  ))}
-                </div>
+            ) : (
+              <p className="text-muted m-0 py-3">No diagnostic records reported.</p>
+            )}
+          </Card>
+        </div>
+
+        <div className="col-12 col-lg-6">
+          <Card title="Monthly Patient Visit Volumes">
+            {data.monthlyVisits && data.monthlyVisits.length > 0 ? (
+              <div style={{ width: '100%', height: 260 }}>
+                <ResponsiveContainer>
+                  <BarChart data={data.monthlyVisits} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="month" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="totalVisits" fill="#b45309" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-          </div>
+            ) : (
+              <p className="text-muted m-0 py-3">No monthly trend data available.</p>
+            )}
+          </Card>
         </div>
       </div>
     </div>

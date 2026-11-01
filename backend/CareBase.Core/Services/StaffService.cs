@@ -13,7 +13,7 @@ public class StaffService(AppDbContext context)
         var today = DateTime.UtcNow.DayOfWeek;
 
         var onDutyDoctorIds = await _context.StaffAvailabilities
-            .Where(a => a.DayOfWeek == today)
+            .Where(a => a.DayOfWeek == today && a.IsAvailable)
             .Select(a => a.UserId)
             .Distinct()
             .ToListAsync();
@@ -52,13 +52,13 @@ public class StaffService(AppDbContext context)
     {
         var doctor = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Id == doctorId && u.Role.RoleName == "Doctor");
+            .FirstOrDefaultAsync(u => u.Id == doctorId && u.Role.RoleName == "Doctor" && u.IsActive);
 
         if (doctor == null)
             return null;
 
         var availableDays = await _context.StaffAvailabilities
-            .Where(a => a.UserId == doctorId)
+            .Where(a => a.UserId == doctorId && a.IsAvailable)
             .Select(a => a.DayOfWeek)
             .Distinct()
             .ToListAsync();

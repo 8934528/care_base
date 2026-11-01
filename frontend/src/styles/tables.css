@@ -1,0 +1,20 @@
+.cb-table {
+  font-size: 0.875rem;
+}
+
+.cb-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 0.775rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid var(--cb-border);
+  padding: 0.75rem 1rem;
+}
+
+.cb-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--cb-border-subtle);
+}
+

@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createAppointment } from "../../services/appointmentService";
 import { searchPatients } from "../../services/patientService";
 import { getDoctors, getDoctorAvailableDates } from "../../services/staffService";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
+import { Card, Button, PageHeader } from "../../components/common";
 
 interface PatientOption {
   id: number;
@@ -20,10 +22,13 @@ const CLINIC_ONLY_TYPES = ["Medication Collection", "Nurse Checkup"];
 
 export default function AppointmentScheduler() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+
   const [patients, setPatients] = useState<PatientOption[]>([]);
   const [doctors, setDoctors] = useState<DoctorOption[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [visitMode, setVisitMode] = useState<"doctor" | "clinic">("doctor");
+
   const [form, setForm] = useState({
     patientId: "",
     doctorId: "",
@@ -46,28 +51,23 @@ export default function AppointmentScheduler() {
         ]);
         setPatients(patientList);
         setDoctors(doctorList);
-      } catch (err) {
-        console.error("Failed to load scheduler data", err);
+      } catch {
+        showToast("Unable to load scheduler data.", "danger");
       }
     };
     load();
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     if (visitMode !== "doctor" || !form.doctorId) {
-      setAvailableDates([]);
-      if (visitMode === "clinic") {
-        setForm((prev) => ({
-          ...prev,
-          appointmentDate: new Date().toISOString().split("T")[0]
-        }));
-      }
       return;
     }
 
+    let isMounted = true;
     const loadDates = async () => {
       try {
         const data = await getDoctorAvailableDates(Number(form.doctorId));
+        if (!isMounted) return;
         setAvailableDates(data.availableDates);
         if (data.availableDates.length > 0) {
           setForm((prev) => ({
@@ -75,20 +75,30 @@ export default function AppointmentScheduler() {
             appointmentDate: data.availableDates[0]
           }));
         }
-      } catch (err) {
-        console.error("Failed to load doctor dates", err);
-        setAvailableDates([]);
+      } catch {
+        if (isMounted) setAvailableDates([]);
       }
     };
     loadDates();
+
+    return () => {
+      isMounted = false;
+    };
   }, [form.doctorId, visitMode]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (name === "doctorId" && !value) {
+      setAvailableDates([]);
+    }
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleVisitModeChange = (mode: "doctor" | "clinic") => {
     setVisitMode(mode);
+    setAvailableDates([]);
     if (mode === "clinic") {
       setForm((prev) => ({
         ...prev,
@@ -107,6 +117,15 @@ export default function AppointmentScheduler() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.patientId) {
+      showToast("Please select a patient.", "warning");
+      return;
+    }
+    if (!form.appointmentDate) {
+      showToast("Please select an appointment date.", "warning");
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await createAppointment({
@@ -116,210 +135,255 @@ export default function AppointmentScheduler() {
         startTime: form.startTime,
         endTime: form.endTime,
         appointmentType: form.appointmentType,
-        reason: form.reason,
+        reason: form.reason || "Consultation",
         priority: form.priority,
         notes: form.notes
       });
-      alert(`Appointment Created: ${result.appointmentRef}`);
+      showToast(`Appointment booked (${result.appointmentRef}).`, "success");
       navigate("/appointments/daily");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || "Appointment creation failed. Check for conflicts.");
+      showToast(error.response?.data?.message || "Appointment conflict detected or doctor unavailable.", "danger");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <h1><i className="fi fi-rr-calendar-clock"></i> Appointment Scheduler</h1>
-      </div>
+    <div className="cb-page container-fluid px-0">
+      <PageHeader
+        title="Schedule Appointment"
+        subtitle="Book patient consultations with verified clinician availability and conflict checks"
+        actions={
+          <Button variant="outline" icon="bi-calendar-week" onClick={() => navigate("/appointments/daily")}>
+            Daily appointments
+          </Button>
+        }
+      />
 
-      <div className="row">
-        <div className="col-6">
-          <div className="glass-panel">
-            <div className="section-header">
-              <i className="fi fi-rr-calendar section-icon"></i>
-              <h3 className="section-title">Booking Details</h3>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Visit Type</label>
-                <div className="action-buttons">
+      <form onSubmit={handleSubmit}>
+        <div className="row g-3">
+          <div className="col-12 col-lg-6">
+            <Card title="Appointment Type & Clinician" className="mb-3">
+              <div className="mb-3">
+                <label className="form-label d-block">Consultation Mode</label>
+                <div className="btn-group w-100" role="group">
                   <button
                     type="button"
-                    className={`btn btn-sm ${visitMode === "doctor" ? "btn-primary" : "btn-ghost"}`}
+                    className={`btn ${visitMode === "doctor" ? "btn-primary" : "btn-outline-secondary"}`}
                     onClick={() => handleVisitModeChange("doctor")}
                   >
-                    Doctor Visit
+                    <i className="bi bi-person-video me-1"></i> Doctor Consultation
                   </button>
                   <button
                     type="button"
-                    className={`btn btn-sm ${visitMode === "clinic" ? "btn-primary" : "btn-ghost"}`}
+                    className={`btn ${visitMode === "clinic" ? "btn-primary" : "btn-outline-secondary"}`}
                     onClick={() => handleVisitModeChange("clinic")}
                   >
-                    Clinic Visit (No Doctor)
+                    <i className="bi bi-hospital me-1"></i> Clinic / Nurse Visit
                   </button>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="patientId">Patient</label>
+              {visitMode === "doctor" ? (
+                <>
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="doctorId">Assigned Doctor *</label>
+                    <select
+                      id="doctorId"
+                      name="doctorId"
+                      className="form-select cb-form-select"
+                      value={form.doctorId}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select a Doctor</option>
+                      {doctors.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="appointmentDate">Available Date *</label>
+                    {availableDates.length > 0 ? (
+                      <select
+                        id="appointmentDate"
+                        name="appointmentDate"
+                        className="form-select cb-form-select"
+                        value={form.appointmentDate}
+                        onChange={handleChange}
+                        required
+                      >
+                        {availableDates.map((d) => (
+                          <option key={d} value={d}>
+                            {new Date(d).toLocaleDateString(undefined, {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        id="appointmentDate"
+                        name="appointmentDate"
+                        type="date"
+                        className="form-control cb-form-control"
+                        value={form.appointmentDate}
+                        onChange={handleChange}
+                        required
+                      />
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="mb-3">
+                  <label className="form-label" htmlFor="clinicDate">Visit Date *</label>
+                  <input
+                    id="clinicDate"
+                    name="appointmentDate"
+                    type="date"
+                    className="form-control cb-form-control"
+                    value={form.appointmentDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="row g-2">
+                <div className="col-6">
+                  <label className="form-label" htmlFor="startTime">Start Time</label>
+                  <input
+                    id="startTime"
+                    name="startTime"
+                    type="time"
+                    className="form-control cb-form-control"
+                    value={form.startTime}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="col-6">
+                  <label className="form-label" htmlFor="endTime">End Time</label>
+                  <input
+                    id="endTime"
+                    name="endTime"
+                    type="time"
+                    className="form-control cb-form-control"
+                    value={form.endTime}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="col-12 col-lg-6">
+            <Card title="Patient & Reason for Visit" className="mb-3">
+              <div className="mb-3">
+                <label className="form-label" htmlFor="patientId">Patient Record *</label>
                 <select
                   id="patientId"
-                  className="form-input"
                   name="patientId"
+                  className="form-select cb-form-select"
                   value={form.patientId}
                   onChange={handleChange}
                   required
                 >
-                  <option value="">Select patient...</option>
+                  <option value="">Select Patient</option>
                   {patients.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.patientRef} — {p.firstName} {p.lastName}
+                      {p.firstName} {p.lastName} ({p.patientRef})
                     </option>
                   ))}
                 </select>
               </div>
 
-              {visitMode === "doctor" ? (
-                <div className="form-group">
-                  <label className="form-label" htmlFor="doctorId">Doctor</label>
+              <div className="row g-2 mb-3">
+                <div className="col-6">
+                  <label className="form-label" htmlFor="appointmentType">Appointment Type</label>
                   <select
-                    id="doctorId"
-                    className="form-input"
-                    name="doctorId"
-                    value={form.doctorId}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select doctor...</option>
-                    {doctors.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.fullName}
-                      </option>
-                    ))}
-                  </select>
-                  {doctors.length === 0 && (
-                    <p className="text-secondary text-sm mt-2">No doctors found. Add doctor staff availability first.</p>
-                  )}
-                </div>
-              ) : (
-                <div className="form-group">
-                  <label className="form-label" htmlFor="appointmentTypeClinic">Clinic Service</label>
-                  <select
-                    id="appointmentTypeClinic"
-                    className="form-input"
+                    id="appointmentType"
                     name="appointmentType"
+                    className="form-select cb-form-select"
                     value={form.appointmentType}
                     onChange={handleChange}
-                    required
                   >
-                    {CLINIC_ONLY_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
+                    {visitMode === "clinic" ? (
+                      CLINIC_ONLY_TYPES.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Routine Checkup">Routine Checkup</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Consultation">Consultation</option>
+                        <option value="Urgent Consultation">Urgent Consultation</option>
+                      </>
+                    )}
                   </select>
                 </div>
-              )}
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="appointmentDate">Appointment Date</label>
-                {visitMode === "doctor" && availableDates.length > 0 ? (
+                <div className="col-6">
+                  <label className="form-label" htmlFor="priority">Priority</label>
                   <select
-                    id="appointmentDate"
-                    className="form-input"
-                    name="appointmentDate"
-                    value={form.appointmentDate}
+                    id="priority"
+                    name="priority"
+                    className="form-select cb-form-select"
+                    value={form.priority}
                     onChange={handleChange}
-                    required
                   >
-                    {availableDates.map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    id="appointmentDate"
-                    type="date"
-                    className="form-input"
-                    name="appointmentDate"
-                    value={form.appointmentDate}
-                    onChange={handleChange}
-                    min={new Date().toISOString().split("T")[0]}
-                    required
-                  />
-                )}
-                {visitMode === "doctor" && form.doctorId && availableDates.length === 0 && (
-                  <p className="text-secondary text-sm mt-2">This doctor has no scheduled days. Pick a date manually or choose another doctor.</p>
-                )}
-              </div>
-
-              <div className="row">
-                <div className="col-6 no-padding-left">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="startTime">Start Time</label>
-                    <input id="startTime" type="time" className="form-input" name="startTime" value={form.startTime} onChange={handleChange} required />
-                  </div>
-                </div>
-                <div className="col-6 no-padding-right">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="endTime">End Time</label>
-                    <input id="endTime" type="time" className="form-input" name="endTime" value={form.endTime} onChange={handleChange} required />
-                  </div>
-                </div>
-              </div>
-
-              {visitMode === "doctor" && (
-                <div className="form-group">
-                  <label className="form-label" htmlFor="appointmentType">Appointment Type</label>
-                  <select id="appointmentType" className="form-input" name="appointmentType" value={form.appointmentType} onChange={handleChange}>
-                    <option value="Routine Checkup">Routine Checkup</option>
-                    <option value="Follow-up">Follow-up</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Priority">Priority</option>
                     <option value="Emergency">Emergency</option>
-                    <option value="Specialist Consultation">Specialist Consultation</option>
                   </select>
                 </div>
-              )}
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="reason">Reason for Visit</label>
-                <textarea id="reason" className="form-input" name="reason" placeholder="Brief reason for the appointment..." rows={2} value={form.reason} onChange={handleChange} />
               </div>
 
-              <div className="form-actions-end">
-                <button type="submit" className="btn btn-primary" disabled={loading}>
-                  <i className="fi fi-rr-check"></i>
-                  <span>{loading ? "Checking Conflicts..." : "Confirm Booking"}</span>
-                </button>
+              <div className="mb-3">
+                <label className="form-label" htmlFor="reason">Clinical Reason for Visit</label>
+                <input
+                  id="reason"
+                  name="reason"
+                  type="text"
+                  className="form-control cb-form-control"
+                  placeholder="e.g. Hypertension review, persistent cough"
+                  value={form.reason}
+                  onChange={handleChange}
+                />
               </div>
-            </form>
-          </div>
-        </div>
 
-        <div className="col-6">
-          <div className="glass-panel policy-panel">
-            <div className="section-header">
-              <i className="fi fi-rr-shield-check section-icon-secondary"></i>
-              <h3 className="section-title text-secondary">Booking Policy</h3>
+              <div className="mb-3">
+                <label className="form-label" htmlFor="notes">Administrative Notes</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows={2}
+                  className="form-control cb-form-control"
+                  placeholder="Special instructions or accommodations..."
+                  value={form.notes}
+                  onChange={handleChange}
+                />
+              </div>
+            </Card>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="ghost" type="button" onClick={() => navigate("/appointments/daily")}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" loading={loading} icon="bi-calendar-check">
+                Confirm Booking
+              </Button>
             </div>
-            <ul className="policy-list">
-              <li>
-                <i className="fi fi-rr-exclamation policy-icon-warning"></i>
-                <span>Doctor visits only book on days that doctor is scheduled (from staff availability).</span>
-              </li>
-              <li>
-                <i className="fi fi-rr-exclamation policy-icon-warning"></i>
-                <span>Clinic visits (medication collection, nurse checkup) do not require a doctor.</span>
-              </li>
-              <li>
-                <i className="fi fi-rr-exclamation policy-icon-warning"></i>
-                <span>System prevents overlapping bookings for the same doctor and time slot.</span>
-              </li>
-            </ul>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

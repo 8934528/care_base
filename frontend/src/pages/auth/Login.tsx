@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const { login } = useAuth();
@@ -22,8 +22,8 @@ export default function Login() {
       login(res.data);
       navigate("/dashboard");
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || "Login failed");
+      const errObj = err as { response?: { data?: { message?: string } } };
+      setError(errObj.response?.data?.message || "Invalid credentials. Please verify your details.");
     } finally {
       setLoading(false);
     }
@@ -31,76 +31,99 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <img src="/carebase.png" alt="" className="auth-bg-watermark" aria-hidden="true" />
-
-      <div className="auth-card animate-fade-in">
-        <div className="auth-card-header">
-          <img src="/carebase.png" alt="CareBase Logo" className="auth-logo" />
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-subtitle">Sign in to your Care Base account</p>
+      <div className="auth-card">
+        <div className="auth-card-header text-center mb-4">
+          <div className="auth-brand-icon mb-2">
+            <i className="bi bi-hospital"></i>
+          </div>
+          <h1 className="auth-title h4 fw-bold mb-1">CareBase Facility Sign In</h1>
+          <p className="auth-subtitle small text-muted">
+            Healthcare Operations & Patient Management System
+          </p>
         </div>
 
         {error && (
-          <div className="error-box">
-            <i className="fi fi-rr-shield-exclamation"></i>
-            <span>{error}</span>
+          <div className="alert alert-danger py-2 px-3 small d-flex align-items-center mb-3" role="alert">
+            <i className="bi bi-shield-exclamation me-2 fs-5"></i>
+            <div>{error}</div>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="auth-form">
-          <div className="form-group mt-3 mb-3">
-            <label className="form-label" htmlFor="login-email">Email Address</label>
-            <div className="input-with-icon">
-              <i className="fi fi-rr-envelope input-icon"></i>
+          <div className="mb-3">
+            <label className="form-label small fw-semibold" htmlFor="login-email">
+              Employee Email
+            </label>
+            <div className="input-group">
+              <span className="input-group-text bg-light text-muted">
+                <i className="bi bi-envelope"></i>
+              </span>
               <input
                 id="login-email"
                 type="email"
-                className="form-input has-icon"
-                placeholder="email@carebase.com"
+                className="form-control cb-form-control"
+                placeholder="staff@carebase.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
           </div>
 
-          <div className="form-group mt-3 mb-3">
-            <label className="form-label" htmlFor="login-password">Password</label>
-            <div className="input-with-icon">
-              <i className="fi fi-rr-lock input-icon"></i>
+          <div className="mb-4">
+            <label className="form-label small fw-semibold" htmlFor="login-password">
+              Password
+            </label>
+            <div className="input-group">
+              <span className="input-group-text bg-light text-muted">
+                <i className="bi bi-lock"></i>
+              </span>
               <input
                 id="login-password"
                 type={showPassword ? "text" : "password"}
-                className="form-input has-icon has-icon-right"
+                className="form-control cb-form-control"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
               <button
                 type="button"
-                className="eye-toggle"
+                className="btn btn-outline-secondary"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                <i className={`fi ${showPassword ? "fi-rr-eye-crossed" : "fi-rr-eye"}`}></i>
+                <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
               </button>
             </div>
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary btn-block auth-submit-btn"
+            className="btn btn-primary w-100 cb-btn-primary py-2"
             disabled={loading}
           >
-            <i className="fi fi-rr-sign-in-alt"></i>
-            <span>{loading ? "Authenticating..." : "Sign In"}</span>
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span>Authenticating...</span>
+              </>
+            ) : (
+              <>
+                <i className="bi bi-box-arrow-in-right me-2"></i>
+                <span>Sign In</span>
+              </>
+            )}
           </button>
         </form>
 
-        <div className="auth-footer">
-          <span>Don't have an account? </span>
-          <Link to="/register">Register here</Link>
+        <div className="auth-footer text-center mt-4 pt-3 border-top">
+          <p className="small text-muted m-0">
+            <i className="bi bi-shield-lock me-1"></i>
+            Restricted access. Employee accounts are provisioned internally by facility administration.
+          </p>
         </div>
       </div>
     </div>

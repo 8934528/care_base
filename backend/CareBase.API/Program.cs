@@ -9,11 +9,26 @@ using CareBase.Core.Helpers;
 using CareBase.API.Middleware;
 using CareBase.Core.Hubs;
 
-DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "../../.env"));
+// Attempt to load .env from several likely locations
+var envPaths = new[]
+{
+    Path.Combine(Directory.GetCurrentDirectory(), ".env"),
+    Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"),
+    Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env")
+};
+foreach (var envPath in envPaths)
+{
+    if (File.Exists(envPath))
+    {
+        DotNetEnv.Env.Load(envPath);
+        break;
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSignalR()
     .AddJsonProtocol(options =>
@@ -21,15 +36,36 @@ builder.Services.AddSignalR()
         options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
-// Configure Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")?
-    .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD"));
+// Configure Database Connection (pgAdmin / PostgreSQL)
+var explicitConn = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+string connectionString;
+
+if (!string.IsNullOrWhiteSpace(explicitConn))
+{
+    connectionString = DatabaseInitializer.NormalizeConnectionString(explicitConn);
+}
+else
+{
+    var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+    var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+    var db = "carebase";
+    var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
+    var pass = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres";
+
+    connectionString = $"Host={host};Port={port};Database={db};Username={user};Password={pass}";
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention());
 
 // Configure JWT Authentication
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+                ?? builder.Configuration["Jwt:Key"] 
+                ?? "CareBase_Production_Secure_Key_2026_Healthcare_System_Enterprise!";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"] ?? "CareBaseAPI";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? builder.Configuration["Jwt:Audience"] ?? "CareBaseClient";
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
@@ -40,19 +76,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
 
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is missing"))
-        )
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
     };
 });
 
 builder.Services.AddAuthorization();
 
-// Register Services
+// Register Application Services
 builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<DepartmentService>();
 builder.Services.AddScoped<PatientService>();
 builder.Services.AddScoped<QueueService>();
 builder.Services.AddScoped<MedicalRecordService>();
@@ -79,13 +116,19 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Auto-initialize Database
+// Verify and initialize database safely
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
-    context.Database.Migrate();
-    DbInitializer.Initialize(context);
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        DatabaseInitializer.Initialize(connectionString, context, app.Logger);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogCritical(ex, "CareBase startup halted: database initialization failed. {Message}", ex.Message);
+        throw;
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -95,11 +138,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<AuditLoggingMiddleware>();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapControllers();
 app.MapHub<QueueHub>("/queueHub");

@@ -11,8 +11,7 @@
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
     <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.26" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.10" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -29,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CareBase.Infrastructure\CareBase.Infrastructure.csproj" />
     <ProjectReference Include="..\CareBase.Core\CareBase.Core.csproj" />
     <ProjectReference Include="..\CareBase.Shared\CareBase.Shared.csproj" />
   </ItemGroup>

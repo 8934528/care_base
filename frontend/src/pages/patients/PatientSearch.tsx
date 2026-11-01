@@ -1,46 +1,47 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { searchPatients } from "../../services/patientService";
 import { addToQueue } from "../../services/queueService";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
-interface Patient {
-  id: number;
-  patientRef: string;
-  firstName: string;
-  lastName: string;
-  idNumber: string;
-}
+import { useToast } from "../../context/ToastContext";
+import type { Patient } from "../../types";
+import {
+  Card,
+  Button,
+  IconButton,
+  PageHeader,
+  LoadingSpinner,
+  EmptyState
+} from "../../components/common";
 
 export default function PatientSearch() {
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
-  const loadPatients = async (searchKeyword: string) => {
+  const loadPatients = useCallback(async (query: string) => {
     setLoading(true);
     try {
-      const data = await searchPatients(searchKeyword);
+      const data = await searchPatients(query);
       setResults(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      console.error("Search failed", err);
+    } catch {
+      showToast("Unable to fetch patient records.", "danger");
       setResults([]);
     } finally {
       setLoading(false);
-      setHasLoaded(true);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     loadPatients("");
-  }, []);
+  }, [loadPatients]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    await loadPatients(keyword);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    loadPatients(keyword);
   };
 
   const handleAddToQueue = async (patient: Patient) => {
@@ -50,116 +51,145 @@ export default function PatientSearch() {
         patientRef: patient.patientRef,
         priority: "Normal"
       });
-      alert("Added to queue successfully");
+      showToast(`Added ${patient.patientRef} to today's queue.`, "success");
       navigate("/queue");
     } catch (err: unknown) {
-      console.error("Failed to add to queue", err);
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      const errorMsg = axiosErr.response?.data?.message || "Failed to add to queue";
-      alert(errorMsg);
+      showToast(axiosErr.response?.data?.message || "Failed to add to queue.", "danger");
     }
   };
 
-  return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <h1><i className="fi fi-rr-search"></i> Search Patients</h1>
-        <button className="btn btn-primary" onClick={() => navigate("/patients/register")}>
-          <i className="fi fi-rr-user-add"></i>
-          <span>New Patient</span>
-        </button>
-      </div>
+  const canRegister = user?.role === "Admin" || user?.role === "Manager" || user?.role === "Clerk" || user?.role === "Nurse";
 
-      <div className="card mb-8">
-        <form onSubmit={handleSearch} className="row align-center">
-          <div className="col-10">
-            <div className="input-with-icon">
-              <i className="fi fi-rr-search input-icon"></i>
+  return (
+    <div className="cb-page container-fluid px-0">
+      <PageHeader
+        title="Patient Directory"
+        subtitle="Search and manage facility patient records and profiles"
+        actions={
+          canRegister ? (
+            <Button
+              variant="primary"
+              icon="bi-person-plus"
+              onClick={() => navigate("/patients/register")}
+            >
+              New patient
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <Card className="mb-4">
+        <form onSubmit={handleSearch} className="row g-2 align-items-center">
+          <div className="col-12 col-md-10">
+            <div className="cb-search-input-group">
+              <i className="bi bi-search cb-search-icon"></i>
               <input
-                className="form-input has-icon"
-                placeholder="Search by name, ID, or reference"
+                type="text"
+                className="form-control cb-form-control"
+                placeholder="Search by first name, last name, national ID, or patient reference..."
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
               />
+              {keyword && (
+                <button
+                  type="button"
+                  className="cb-search-clear"
+                  onClick={() => {
+                    setKeyword("");
+                    loadPatients("");
+                  }}
+                  aria-label="Clear search"
+                >
+                  <i className="bi bi-x"></i>
+                </button>
+              )}
             </div>
           </div>
-          <div className="col-2">
-            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-              {loading ? "Searching..." : "Search"}
-            </button>
+          <div className="col-12 col-md-2">
+            <Button variant="secondary" type="submit" className="w-100" icon="bi-search">
+              Search
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
 
-      <div className="glass-panel no-padding overflow-x">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Patient Ref</th>
-              <th>Full Name</th>
-              <th>ID Number</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center p-12">
-                  <div className="empty-state">
-                    <i className="fi fi-rr-user empty-state-icon"></i>
-                    <p>
-                      {loading
-                        ? "Loading patients..."
-                        : hasLoaded
-                          ? "No patients found"
-                          : "Loading patients..."}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              results.map((p: Patient) => (
-                <tr key={p.id}>
-                  <td className="font-semibold text-primary">{p.patientRef}</td>
-                  <td>{p.firstName} {p.lastName}</td>
-                  <td>{p.idNumber}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <Link 
-                        to={`/patients/profile/${p.patientRef}`} 
-                        className="btn btn-sm" 
-                        style={{ backgroundColor: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
-                      >
-                        <i className="fi fi-rr-id-badge"></i>
-                        <span>Profile</span>
-                      </Link>
-                      <button 
-                        className="btn btn-primary btn-sm" 
-                        onClick={() => handleAddToQueue(p)}
-                      >
-                        <i className="fi fi-rr-list-check"></i>
-                        <span>Queue</span>
-                      </button>
-                      {(user?.role === "Admin" || user?.role === "Doctor") && (
-                        <Link to={`/records/${p.id}`} className="btn btn-secondary btn-sm" style={{ backgroundColor: "var(--secondary)", color: "white" }}>
-                          <i className="fi fi-rr-file-medical"></i>
-                          <span>Records</span>
-                        </Link>
-                      )}
-                      {(user?.role === "Admin" || user?.role === "Doctor" || user?.role === "Nurse") && (
-                        <Link to={`/notes/${p.id}`} className="btn btn-ghost btn-sm">
-                          <i className="fi fi-rr-comment-medical"></i>
-                          <span>Notes</span>
-                        </Link>
-                      )}
-                    </div>
-                  </td>
+      <Card>
+        {loading ? (
+          <LoadingSpinner message="Searching patient database..." />
+        ) : results.length === 0 ? (
+          <EmptyState
+            icon="bi-people"
+            title="No patients found"
+            message={keyword ? `No patient records match "${keyword}".` : "No patient records registered."}
+            action={
+              canRegister ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon="bi-person-plus"
+                  onClick={() => navigate("/patients/register")}
+                >
+                  Register new patient
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div className="table-responsive">
+            <table className="table cb-table align-middle m-0">
+              <thead>
+                <tr>
+                  <th scope="col">Patient Reference</th>
+                  <th scope="col">Full Name</th>
+                  <th scope="col">National ID Number</th>
+                  <th scope="col">Phone Contact</th>
+                  <th scope="col" className="text-end">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {results.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <code className="cb-code-pill">{p.patientRef}</code>
+                    </td>
+                    <td className="fw-semibold">
+                      {p.firstName} {p.lastName}
+                    </td>
+                    <td>{p.idNumber}</td>
+                    <td>{p.phone || <span className="text-muted">N/A</span>}</td>
+                    <td className="text-end">
+                      <div className="d-inline-flex align-items-center gap-1">
+                        <IconButton
+                          icon="bi-eye"
+                          label="View Profile"
+                          tooltip="View patient profile"
+                          onClick={() => navigate(`/patients/profile/${p.patientRef}`)}
+                        />
+                        <IconButton
+                          icon="bi-list-check"
+                          label="Add to Queue"
+                          tooltip="Add patient to queue"
+                          variant="primary"
+                          onClick={() => handleAddToQueue(p)}
+                        />
+                        {(user?.role === "Doctor" || user?.role === "Admin") && (
+                          <IconButton
+                            icon="bi-journal-medical"
+                            label="Medical Records"
+                            tooltip="Clinical history"
+                            onClick={() => navigate(`/records/${p.id}`)}
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

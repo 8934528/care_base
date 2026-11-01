@@ -23,12 +23,12 @@ export const createAppointment = async (data: CreateAppointmentPayload) => {
   return res.data;
 };
 
-export const getAppointmentsByDate = async (date: string) => {
+export const getAppointmentsByDate = async (date: string): Promise<Appointment[]> => {
   const res = await api.get(`/appointments/date/${date}`);
   return res.data;
 };
 
-export const getDoctorAppointments = async (doctorId: number) => {
+export const getDoctorAppointments = async (doctorId: number): Promise<Appointment[]> => {
   const res = await api.get(`/appointments/doctor/${doctorId}`);
   return res.data;
 };

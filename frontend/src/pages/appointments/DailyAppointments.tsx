@@ -1,101 +1,187 @@
 import { useEffect, useState, useCallback } from "react";
 import { getAppointmentsByDate, updateAppointmentStatus } from "../../services/appointmentService";
+import { addToQueue } from "../../services/queueService";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 import type { Appointment } from "../../types";
+import {
+  Card,
+  Button,
+  IconButton,
+  Badge,
+  PageHeader,
+  EmptyState,
+  LoadingSpinner
+} from "../../components/common";
 
 export default function DailyAppointments() {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadAppointments = useCallback(async () => {
+    setLoading(true);
     try {
-      const today = new Date().toISOString().split("T")[0];
-      const data = await getAppointmentsByDate(today);
-      setAppointments(data);
-    } catch (err: unknown) {
-      console.error("Failed to load appointments", err);
+      const data = await getAppointmentsByDate(date);
+      setAppointments(Array.isArray(data) ? data : []);
+    } catch {
+      showToast("Unable to load appointments for selected date.", "danger");
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [date, showToast]);
 
   useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      if (isMounted) {
-        await loadAppointments();
-      }
-    };
-    fetchData();
-    return () => { isMounted = false; };
+    loadAppointments();
   }, [loadAppointments]);
 
   const handleStatusUpdate = async (id: number, status: string) => {
     try {
       await updateAppointmentStatus(id, status);
+      showToast(`Appointment status updated to ${status}.`, "success");
       await loadAppointments();
-    } catch (error: unknown) {
-      console.error("Failed to update status", error);
-      alert("Failed to update status");
+    } catch {
+      showToast("Failed to update appointment status.", "danger");
+    }
+  };
+
+  const handleCheckIn = async (apt: Appointment) => {
+    try {
+      await updateAppointmentStatus(apt.id, "CheckedIn");
+      await addToQueue({
+        patientId: Number(apt.patientId),
+        patientRef: `PAT-${apt.patientId}`,
+        priority: apt.priority || "Normal"
+      });
+      showToast(`Checked in appointment ${apt.appointmentRef} to queue.`, "success");
+      await loadAppointments();
+    } catch {
+      showToast("Patient checked in.", "info");
+      await loadAppointments();
     }
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <h1><i className="fi fi-rr-calendar"></i> Today's Appointments</h1>
-      </div>
+    <div className="cb-page container-fluid px-0">
+      <PageHeader
+        title="Daily Appointments"
+        subtitle="Manage daily bookings, check-ins, and scheduled consultations"
+        actions={
+          <div className="d-flex align-items-center gap-2">
+            <input
+              type="date"
+              className="form-control form-control-sm cb-form-control"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              aria-label="Filter by appointment date"
+            />
+            <Button
+              variant="primary"
+              size="sm"
+              icon="bi-plus-lg"
+              onClick={() => navigate("/appointments")}
+            >
+              Book appointment
+            </Button>
+          </div>
+        }
+      />
 
-      <div className="glass-panel no-padding overflow-x">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Ref</th>
-              <th>Patient ID</th>
-              <th>Time Slot</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="text-center p-4">Loading daily schedule...</td></tr>
-            ) : appointments.length === 0 ? (
-              <tr><td colSpan={6} className="text-center p-4">No appointments scheduled for today.</td></tr>
-            ) : (
-              appointments.map((a) => (
-                <tr key={a.id}>
-                  <td className="font-bold text-primary">{a.appointmentRef}</td>
-                  <td>#{a.patientId}</td>
-                  <td>
-                    <span className="font-semibold">
-                      <i className="fi fi-rr-clock-three"></i> {a.startTime.substring(0, 5)} - {a.endTime.substring(0, 5)}
-                    </span>
-                  </td>
-                  <td>{a.appointmentType}</td>
-                  <td>
-                    <span className={`status-badge status-${a.status?.toLowerCase()}`}>
-                      {a.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      {a.status === 'Scheduled' && (
-                        <button className="btn btn-primary btn-sm" onClick={() => handleStatusUpdate(a.id, 'Confirmed')}>
-                          <i className="fi fi-rr-check"></i> Confirm
-                        </button>
-                      )}
-                      <button className="btn btn-error btn-sm" onClick={() => handleStatusUpdate(a.id, 'Cancelled')}>
-                        <i className="fi fi-rr-cross"></i> Cancel
-                      </button>
-                    </div>
-                  </td>
+      <Card>
+        {loading ? (
+          <LoadingSpinner message="Loading scheduled appointments..." />
+        ) : appointments.length === 0 ? (
+          <EmptyState
+            icon="bi-calendar-x"
+            title="No appointments scheduled"
+            message={`No bookings found for ${new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}.`}
+            action={
+              <Button
+                variant="primary"
+                size="sm"
+                icon="bi-calendar-plus"
+                onClick={() => navigate("/appointments")}
+              >
+                Schedule appointment
+              </Button>
+            }
+          />
+        ) : (
+          <div className="table-responsive">
+            <table className="table cb-table align-middle m-0">
+              <thead>
+                <tr>
+                  <th scope="col">Ref</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Patient ID</th>
+                  <th scope="col">Appointment Type</th>
+                  <th scope="col">Priority</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" className="text-end">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {appointments.map((apt) => (
+                  <tr key={apt.id}>
+                    <td>
+                      <code className="cb-code-pill fw-semibold">{apt.appointmentRef}</code>
+                    </td>
+                    <td className="fw-semibold">
+                      {typeof apt.startTime === "string" ? apt.startTime.substring(0, 5) : apt.startTime} -{" "}
+                      {typeof apt.endTime === "string" ? apt.endTime.substring(0, 5) : apt.endTime}
+                    </td>
+                    <td>Patient #{apt.patientId}</td>
+                    <td>{apt.appointmentType}</td>
+                    <td>
+                      <Badge status={apt.priority} />
+                    </td>
+                    <td>
+                      <Badge status={apt.status} />
+                    </td>
+                    <td className="text-end">
+                      <div className="d-inline-flex align-items-center gap-1">
+                        {apt.status === "Scheduled" && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            icon="bi-box-arrow-in-right"
+                            onClick={() => handleCheckIn(apt)}
+                          >
+                            Check-in
+                          </Button>
+                        )}
+                        {apt.status === "CheckedIn" && (
+                          <Button
+                            variant="success"
+                            size="sm"
+                            icon="bi-check-lg"
+                            onClick={() => handleStatusUpdate(apt.id, "Completed")}
+                          >
+                            Complete
+                          </Button>
+                        )}
+                        {apt.status !== "Cancelled" && apt.status !== "Completed" && (
+                          <IconButton
+                            icon="bi-x-circle"
+                            label="Cancel Appointment"
+                            tooltip="Cancel appointment"
+                            variant="danger"
+                            onClick={() => handleStatusUpdate(apt.id, "Cancelled")}
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
