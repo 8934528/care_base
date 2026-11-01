@@ -12,7 +12,7 @@ Digital patient data capturing and workflow management system for healthcare env
 
 ## Overview
 
-CareBase is a modern, integrated healthcare management system designed to streamline patient registration, medical record keeping, appointment scheduling, and queue management. 
+CareBase is a modern, integrated healthcare management system designed to streamline patient registration, medical record keeping, appointment scheduling, and queue management.
 
     focuses on data integrity, usability, and secure handling of sensitive information. 
 
@@ -34,6 +34,6 @@ CareBase is a modern, integrated healthcare management system designed to stream
 
 Use the provided `Makefile` to quickly set up and run the project:
 
-```bash
-make help
-```
+    ```bash
+    make help
+    ```
